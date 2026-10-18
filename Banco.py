@@ -1,6 +1,7 @@
 from pathlib import Path
 
-import uvicorn
+import uvicorn 
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,11 +18,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:3000",
-        "http://localhost:3000",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-        "https://antonny134.github.io/Cardapio/",
-        "https://antonny134.github.io"
+         "http://localhost:3000",
+                "http://127.0.0.1:8000",
+                "http://localhost:8000",
+                "https://antonny134.github.io/Cardapio/",
+                "https://antonny134.github.io"
     ],
     allow_credentials=True,
     allow_methods=["GET"],
@@ -122,15 +123,6 @@ produtos = [
         "valor": 9.00,
     },
 ]
-
-# Lista de bebidas (o primeiro é o seu suco; do id 14 ao 23 são novos).
-# Os ids começam em 13 de propósito: lanches e bebidas aparecem na mesma
-# página, então o id não pode se repetir entre as duas listas.
-# As fotos vêm do Wikimedia Commons pelo endereço Special:FilePath, que
-# redireciona para o arquivo original (width=600 pede a imagem já reduzida).
-# Descrições e preços dos novos itens são exemplos: ajuste para o seu cardápio.
-
-
 
 bebidas = [
     {

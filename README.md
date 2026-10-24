@@ -1,17 +1,6 @@
 # Cardapio
 Esse site tem cardápio para a sua empresa.
 
-# Como executar a API
-
-Com Python instalado, na pasta do projeto execute:
-
-```bash
-python -m pip install -r request.txt
-python Banco.py
-```
-
-A API ficará disponível em `http://127.0.0.1:8000`.
-
 # Atualização 17/10/2026
 
 1. Coloquei um aviso ao clicar no carrinho vazio, dizendo para adicionar algo antes de comprar

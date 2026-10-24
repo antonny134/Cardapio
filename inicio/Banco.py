@@ -1,10 +1,11 @@
+import json
 from pathlib import Path
 
-import uvicorn 
-
+import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 app = FastAPI()
 PASTA_PROJETO = Path(__file__).parent
@@ -18,24 +19,20 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:3000",
-         "http://localhost:3000",
-                "http://127.0.0.1:8000",
-                "http://localhost:8000",
-                "https://antonny134.github.io/Cardapio/",
-                "https://antonny134.github.io"
+        "http://localhost:3000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
     ],
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 FOTO = "https://commons.wikimedia.org/wiki/Special:FilePath/{}?width=600"
 
- # Lista de lanches (os 2 primeiros são os seus; do id 3 ao 12 são novos).
+# Lista de lanches (os 2 primeiros são os seus; do id 3 ao 12 são novos).
 # As fotos vêm do Wikimedia Commons pelo endereço Special:FilePath, que
 # redireciona para o arquivo original (width=600 pede a imagem já reduzida).
 # Descrições e preços dos novos itens são exemplos: ajuste para o seu cardápio.
-
-
 
 produtos = [
     {
@@ -204,8 +201,36 @@ bebidas = [
     },
 ]
 
+# ---------- Persistência em arquivo ----------
+ARQUIVO_BANCO = PASTA_PROJETO / "banco.json"
 
 
+def salvar_banco():
+    ARQUIVO_BANCO.write_text(
+        json.dumps({"produtos": produtos, "bebidas": bebidas}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def carregar_banco():
+    if ARQUIVO_BANCO.is_file():
+        dados = json.loads(ARQUIVO_BANCO.read_text(encoding="utf-8"))
+        produtos[:] = dados["produtos"]  # [:] troca o conteúdo mantendo a mesma lista
+        bebidas[:] = dados["bebidas"]
+
+
+carregar_banco()
+
+
+class NovoProduto(BaseModel):
+    nome: str
+    descricao: str = ""
+    valor: float
+    url_foto: str = ""
+    categoria: str  # "lanche" ou "bebida"
+
+
+# ---------- Rotas ----------
 @app.get("/")
 def inicio():
     return FileResponse(PASTA_PROJETO / "index.html")
@@ -229,6 +254,38 @@ def lista_produto():
 @app.get("/suco")
 def lista_suco():
     return bebidas
+
+
+@app.post("/produtos", status_code=201)
+def adicionar_produto(novo: NovoProduto):
+    proximo_id = max((p["id_produto"] for p in produtos + bebidas), default=0) + 1
+    item = {
+        "id_produto": proximo_id,
+        "nome": novo.nome,
+        "descricao": novo.descricao,
+        "url_foto": novo.url_foto,
+        "valor": novo.valor,
+    }
+    (bebidas if novo.categoria == "bebida" else produtos).append(item)
+    salvar_banco()
+    return item
+
+
+@app.delete("/produtos/{id_produto}")
+def apagar_produto(id_produto: int):
+    for lista in (produtos, bebidas):
+        for p in lista:
+            if p["id_produto"] == id_produto:
+                lista.remove(p)
+                salvar_banco()
+                return {"mensagem": "Produto removido."}
+    raise HTTPException(status_code=404, detail="Produto não encontrado.")
+
+
+@app.get("/atualizar")
+def colocar_produtos():
+    return FileResponse(PASTA_PROJETO / "funcionario.html")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

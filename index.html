@@ -651,6 +651,39 @@
         }
       }
 
+      /* ---------- rodapé ---------- */
+      footer {
+        background: var(--ketchup);
+        color: var(--papel);
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        border-top: 3px solid var(--tinta);
+      }
+      footer ul {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 9px;
+        margin-top: 9px;
+        list-style: none;
+      }
+      footer a {
+        display: inline-block;
+        padding: 4px 8px;
+        margin-left: -8px;
+        text-decoration: none;
+        color: var(--papel-claro);
+        border-radius: 50px;
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+      footer a:hover {
+        background: var(--papel);
+        color: var(--tinta);
+      }
+
       /* ---------- mobile ---------- */
       @media (max-width: 560px) {
         .carrinho ul {
@@ -685,33 +718,6 @@
         html {
           scroll-behavior: auto;
         }
-      }
-      footer{
-        background: var(--ketchup);
-        color: var(--papel);
-        padding: 9px;
-        display: flex;
-        flex-direction: column;
-        list-style-type: none;
-        border-top: 3px solid var(--tinta);
-      }
-      footer ul{
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-        margin-top: 9px;
-      }
-      footer li a:hover{
-        background: var(--papel);
-        color: #1b1410;
-        transition: all 0.5s;
-        padding: 4px;
-        border-radius: 50px;
-      }
-      footer a{
-        text-decoration: none;
-        color: var(--papel-claro);
-        gap: 4px;
       }
     </style>
   </head>
@@ -748,19 +754,19 @@
     </header>
 
     <!-- Cardapio -->
-    <div class="tema" data-n="01">
+    <div class="tema" data-n="01" id="lanche">
       <h3 id="nome1">Lanche</h3>
     </div>
-    <section class="main-cardapio" id="lanche">
+    <section class="main-cardapio">
       <div class="lista-produtos" id="lista-produtos">
         <p id="status-lanches" role="status">Carregando lanches...</p>
       </div>
     </section>
 
-    <div class="tema" data-n="02">
+    <div class="tema" data-n="02" id="bebida">
       <h3>Bebida</h3>
     </div>
-    <section id="bebida" class="main-bebida">
+    <section class="main-bebida">
       <div class="lista-produtos" id="lista-bebidas">
         <p id="status-bebidas" role="status">Carregando bebidas...</p>
       </div>
@@ -866,9 +872,10 @@
       const campoObs = document.getElementById("pedido-obs");
       const erroPedido = document.getElementById("erro-pedido");
 
-      const API_BASE = "https://mainpy-one.vercel.app/";
+      // sem barra no final (antes gerava "//produtos" nas requisições)
+      const API_BASE = "https://mainpy-one.vercel.app";
 
-      
+      // formato: 55 + DDD + número (ex.: 5593991234567)
       const WHATSAPP = "55938737328";
 
       const CHAVE_CARRINHO = "cardapio:carrinho";
@@ -879,6 +886,16 @@
 
       const valorValido = (valor) =>
         typeof valor === "number" && Number.isFinite(valor);
+
+      const whatsappValido = () => /^55\d{10,11}$/.test(WHATSAPP);
+
+      function urlImagem(caminho, imagemPadrao) {
+        try {
+          return new URL(caminho || imagemPadrao, API_BASE + "/").href;
+        } catch {
+          return new URL(imagemPadrao, API_BASE + "/").href;
+        }
+      }
 
       /* ---------- armazenamento local ---------- */
       function salvarLocal(chave, valor) {
@@ -1061,6 +1078,13 @@
 
         atualizarCarrinho();
 
+        // carrinho esvaziado: fecha a comanda
+        if (produtosCarrinho.size === 0) {
+          painelCarrinho.hidden = true;
+          linkCarrinho.setAttribute("aria-expanded", "false");
+          return;
+        }
+
         // devolve o foco ao botão usado, para quem navega pelo teclado
         if (acao !== "excluir-item" && produtosCarrinho.has(id)) {
           itensCarrinho
@@ -1072,12 +1096,12 @@
       });
 
       /* ---------- detalhes ---------- */
-      function verDetalhes(idProduto) {
+      function verDetalhes(chaveProduto) {
         const produto = produtosCarregados.find(
-          (item) => String(item.id_produto) === String(idProduto),
+          (item) => item.chave === chaveProduto,
         );
         if (!produto) {
-          console.error("Produto não encontrado:", idProduto);
+          console.error("Produto não encontrado:", chaveProduto);
           return;
         }
 
@@ -1093,25 +1117,42 @@
       }
 
       /* ---------- listagem ---------- */
-      function exibirProdutos(produtos, lista, status, classeCartao, imagemPadrao) {
+      function exibirProdutos(
+        produtos,
+        lista,
+        status,
+        classeCartao,
+        imagemPadrao,
+      ) {
         if (produtos.length === 0) {
           status.textContent = "Nenhum produto cadastrado na API.";
           return;
         }
 
-        produtosCarregados.push(...produtos);
+        // a chave inclui a categoria: lanche e bebida podem ter o mesmo id_produto
+        const comChave = produtos.map((produto) => ({
+          ...produto,
+          chave: `${classeCartao}-${produto.id_produto}`,
+        }));
+
+        produtosCarregados.push(...comChave);
         lista.replaceChildren();
 
-        for (const produto of produtos) {
+        for (const produto of comChave) {
           const card = document.createElement("div");
           card.className = `${classeCartao} card-produto`;
 
           const imagem = document.createElement("img");
-          imagem.src = new URL(
-            produto.url_foto || imagemPadrao,
-            API_BASE,
-          ).href;
+          imagem.src = urlImagem(produto.url_foto, imagemPadrao);
           imagem.alt = produto.nome;
+          imagem.loading = "lazy";
+          imagem.addEventListener(
+            "error",
+            () => {
+              imagem.src = urlImagem(null, imagemPadrao);
+            },
+            { once: true },
+          );
 
           const nome = document.createElement("h4");
           nome.textContent = produto.nome;
@@ -1131,14 +1172,13 @@
           const adicionar = document.createElement("button");
           adicionar.type = "button";
           adicionar.textContent = "Adicionar ao Carrinho";
-          adicionar.dataset.productId = produto.id_produto;
-          adicionar.dataset.productName = produto.nome;
+          adicionar.dataset.productId = produto.chave;
           adicionar.dataset.action = "adicionar-carrinho";
 
           const detalhes = document.createElement("button");
           detalhes.type = "button";
           detalhes.textContent = "Ver detalhes";
-          detalhes.dataset.productId = produto.id_produto;
+          detalhes.dataset.productId = produto.chave;
           detalhes.dataset.action = "ver-detalhes";
 
           botoes.append(adicionar, detalhes);
@@ -1193,7 +1233,7 @@
         }
 
         const produto = produtosCarregados.find(
-          (item) => String(item.id_produto) === botao.dataset.productId,
+          (item) => item.chave === botao.dataset.productId,
         );
         if (!produto) {
           console.error("Produto não encontrado:", botao.dataset.productId);
@@ -1202,12 +1242,12 @@
 
         if (botao.dataset.action === "adicionar-carrinho") {
           adicionarAoCarrinho(
-            produto.id_produto,
+            produto.chave,
             produto.nome,
             valorValido(produto.valor) ? produto.valor : null,
           );
         } else if (botao.dataset.action === "ver-detalhes") {
-          verDetalhes(botao.dataset.productId);
+          verDetalhes(produto.chave);
         }
       }
 
@@ -1272,6 +1312,16 @@
           return;
         }
 
+        if (!whatsappValido()) {
+          mostrarAviso(
+            "O número de WhatsApp da loja está incompleto. Avise o estabelecimento.",
+          );
+          console.error(
+            `Número de WhatsApp inválido: "${WHATSAPP}". Use 55 + DDD + número.`,
+          );
+          return;
+        }
+
         const linhas = itens.map(({ nome, quantidade, valor }) => {
           const preco =
             valor === null || valor === undefined
@@ -1330,8 +1380,7 @@
             exibirProdutos(produtos, lista, status, classeCartao, imagemPadrao);
           })
           .catch((erro) => {
-            status.textContent =
-              "Não foi possível carregar os produtos.";
+            status.textContent = "Não foi possível carregar os produtos.";
             console.error(`Erro ao carregar produtos de ${url}:`, erro);
           });
       }

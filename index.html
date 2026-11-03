@@ -359,6 +359,14 @@
       }
 
       /* ---------- comanda (carrinho) ---------- */
+      body.comanda-aberta > .faixa,
+      body.comanda-aberta > .hero,
+      body.comanda-aberta > .tema,
+      body.comanda-aberta > .main-cardapio,
+      body.comanda-aberta > .main-bebida,
+      body.comanda-aberta > footer {
+        display: none;
+      }
       .painel-carrinho {
         position: relative;
         max-width: 480px;
@@ -719,6 +727,28 @@
           scroll-behavior: auto;
         }
       }
+
+      .form-fechar {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .form-fechar button {
+        font-family: var(--texto);
+        font-weight: 800;
+        font-size: 14px;
+        padding: 10px 16px;
+        cursor: pointer;
+        color: var(--papel-claro);
+        background: var(--ketchup);
+        border: 2.5px solid var(--tinta);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--tinta);
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+
     </style>
   </head>
   <body>
@@ -773,6 +803,9 @@
     </section>
 
     <section class="painel-carrinho" id="carrinho" hidden>
+      <form  class="form-fechar" id="form-fechar" novalidate>
+        <button type="button" id="fechar-carrinho">Fechar comanda</button>
+      </form>
       <h3>Comanda</h3>
       <p id="mensagem-carrinho">Carrinho vazio</p>
       <ul id="itens-carrinho"></ul>
@@ -824,6 +857,7 @@
       </form>
 
       <button type="button" id="finalizar">Fazer encomenda pelo WhatsApp</button>
+      
     </section>
     <div id="aviso" class="aviso" role="alert" hidden></div>
     <dialog id="detalhes-produto">
@@ -993,6 +1027,12 @@
         );
       }
 
+      function definirCarrinhoAberto(aberto) {
+        painelCarrinho.hidden = !aberto;
+        document.body.classList.toggle("comanda-aberta", aberto);
+        linkCarrinho.setAttribute("aria-expanded", String(aberto));
+      }
+
       function criarBotaoQuantidade(texto, acao, id, rotulo) {
         const botao = document.createElement("button");
         botao.type = "button";
@@ -1080,10 +1120,11 @@
 
         // carrinho esvaziado: fecha a comanda
         if (produtosCarrinho.size === 0) {
-          painelCarrinho.hidden = true;
-          linkCarrinho.setAttribute("aria-expanded", "false");
+          definirCarrinhoAberto(false);
+          linkCarrinho.focus();
           return;
         }
+        
 
         // devolve o foco ao botão usado, para quem navega pelo teclado
         if (acao !== "excluir-item" && produtosCarrinho.has(id)) {
@@ -1210,21 +1251,33 @@
 
       linkCarrinho.addEventListener("click", (evento) => {
         evento.preventDefault();
+        if (!painelCarrinho.hidden) {
+          definirCarrinhoAberto(false);
+          return;
+        }
         if (produtosCarrinho.size === 0) {
-          painelCarrinho.hidden = true;
-          linkCarrinho.setAttribute("aria-expanded", "false");
+          definirCarrinhoAberto(false);
           mostrarAviso(AVISO_CARRINHO_VAZIO);
           return;
         }
-        painelCarrinho.hidden = !painelCarrinho.hidden;
-        linkCarrinho.setAttribute(
-          "aria-expanded",
-          String(!painelCarrinho.hidden),
-        );
-        if (!painelCarrinho.hidden) {
-          painelCarrinho.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        definirCarrinhoAberto(true);
+        painelCarrinho.scrollIntoView({ behavior: "smooth", block: "center" });
       });
+
+      document
+        .getElementById("fechar-carrinho")
+        .addEventListener("click", () => {
+          definirCarrinhoAberto(false);
+          linkCarrinho.focus();
+        });
+
+      document
+        .querySelectorAll(
+          '.carrinho a[href="#lanche"], .carrinho a[href="#bebida"]',
+        )
+        .forEach((link) => {
+          link.addEventListener("click", () => definirCarrinhoAberto(false));
+        });
 
       function tratarCliqueProduto(evento) {
         const botao = evento.target.closest("button[data-action]");
@@ -1285,7 +1338,6 @@
           erroPedido.hidden = true;
           return true;
         }
-
         for (const [campo] of erros) {
           campo.classList.add("invalido");
         }
@@ -1415,6 +1467,8 @@
         "bebida",
         "/imagens/bebida-suco-de-laranja.jpg",
       );
+
+      
     </script>
   </body>
 </html>

@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
       :root {
         --papel: #f6ead4;
@@ -559,6 +560,12 @@
         transform: translate(3px, 3px);
         box-shadow: 0 0 0 var(--tinta);
       }
+      #finalizar:disabled {
+        opacity: 0.6;
+        cursor: wait;
+        transform: none;
+        box-shadow: 3px 3px 0 var(--tinta);
+      }
 
       /* ---------- detalhes ---------- */
       #detalhes-produto {
@@ -867,9 +874,7 @@
         <p id="erro-pedido" role="alert" hidden></p>
       </form>
 
-      <button type="button" id="finalizar">
-        Fazer encomenda pelo WhatsApp
-      </button>
+      <button type="button" id="finalizar">Finalizar pedido</button>
     </section>
     <div id="aviso" class="aviso" role="alert" hidden></div>
     <dialog id="detalhes-produto">
@@ -896,7 +901,6 @@
       </ul>
     </footer>
     <script>
-      const campoLocalidade = document.getElementById("campo-localidade");
       const rotuloMesa = document.getElementById("campo-mesa");
       const produtosCarrinho = new Map();
       const linkCarrinho = document.getElementById("abrir-carrinho");
@@ -909,6 +913,7 @@
       const mensagemCarrinho = document.getElementById("mensagem-carrinho");
       const itensCarrinho = document.getElementById("itens-carrinho");
       const dialogoDetalhes = document.getElementById("detalhes-produto");
+      const botaoFinalizar = document.getElementById("finalizar");
       const produtosCarregados = [];
 
       const formPedido = document.getElementById("form-pedido");
@@ -924,8 +929,12 @@
       // sem barra no final (antes gerava "//produtos" nas requisições)
       const API_BASE = "https://mainpy-one.vercel.app";
 
-      // formato: 55 + DDD + número (ex.: 5593991234567)
+      // formato: 55 + DDD + número (usado só no link do rodapé)
       const WHATSAPP = "5598988602161";
+
+      // Precisa ser IGUAL ao PAINEL_ID do painel.html
+      const PAINEL_ID = "cardapio-painel-7f3k";
+      const CANAL_PAINEL = "cardapio-pedidos";
 
       const CHAVE_CARRINHO = "cardapio:carrinho";
       const CHAVE_PEDIDO = "cardapio:pedido";
@@ -935,8 +944,6 @@
 
       const valorValido = (valor) =>
         typeof valor === "number" && Number.isFinite(valor);
-
-      const whatsappValido = () => /^55\d{10,11}$/.test(WHATSAPP);
 
       function urlImagem(caminho, imagemPadrao) {
         try {
@@ -1367,7 +1374,56 @@
         return false;
       }
 
-      function comprar() {
+      /* ---------- envio para o painel ---------- */
+      // Envia por BroadcastChannel (mesmo aparelho) e por PeerJS (outros aparelhos).
+      // Resolve true quando o painel confirma o recebimento.
+      function enviarParaPainel(pedido) {
+        try {
+          const canal = new BroadcastChannel(CANAL_PAINEL);
+          canal.postMessage(pedido);
+          setTimeout(() => canal.close(), 1000);
+        } catch {
+          /* sem BroadcastChannel: segue só com PeerJS */
+        }
+
+        return new Promise((resolve) => {
+          let peer;
+          let resolvido = false;
+          const terminar = (ok) => {
+            if (resolvido) {
+              return;
+            }
+            resolvido = true;
+            clearTimeout(limite);
+            setTimeout(() => {
+              try {
+                peer?.destroy();
+              } catch {}
+            }, 500);
+            resolve(ok);
+          };
+          const limite = setTimeout(() => terminar(false), 10000);
+
+          try {
+            peer = new Peer();
+            peer.on("error", () => terminar(false));
+            peer.on("open", () => {
+              const conn = peer.connect(PAINEL_ID, { reliable: true });
+              conn.on("error", () => terminar(false));
+              conn.on("open", () => conn.send(pedido));
+              conn.on("data", (resposta) => {
+                if (resposta && resposta.ok) {
+                  terminar(true);
+                }
+              });
+            });
+          } catch {
+            terminar(false);
+          }
+        });
+      }
+
+      async function comprar() {
         const itens = [...produtosCarrinho.values()];
         if (itens.length === 0) {
           painelCarrinho.hidden = false;
@@ -1387,61 +1443,45 @@
           return;
         }
 
-        if (!whatsappValido()) {
+        const pedido = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          nome: campoNome.value.trim(),
+          tipo: campoTipo.value,
+          mesa: campoMesa.value.trim(),
+          endereco: campoEndereco.value.trim(),
+          pagamento: campoPagamento.value,
+          obs: campoObs.value.trim(),
+          total: calcularTotal(itens),
+          itens: itens.map(({ nome, quantidade, valor }) => ({
+            nome,
+            quantidade,
+            valor,
+          })),
+        };
+
+        botaoFinalizar.disabled = true;
+        botaoFinalizar.textContent = "Enviando...";
+
+        const enviado = await enviarParaPainel(pedido);
+
+        botaoFinalizar.disabled = false;
+        botaoFinalizar.textContent = "Finalizar pedido";
+
+        if (!enviado) {
           mostrarAviso(
-            "O número de WhatsApp da loja está incompleto. Avise o estabelecimento.",
-          );
-          console.error(
-            `Número de WhatsApp inválido: "${WHATSAPP}". Use 55 + DDD + número.`,
+            "Não foi possível enviar o pedido. Tente novamente em instantes.",
           );
           return;
         }
 
-        const linhas = itens.map(({ nome, quantidade, valor }) => {
-          const preco =
-            valor === null || valor === undefined
-              ? ""
-              : ` (${formatarPreco(valor * quantidade)})`;
-          return `• ${quantidade}x ${nome}${preco}`;
-        });
-        const total = calcularTotal(itens);
-        const estouNoLocal = campoTipo.value === "estou-no-local";
-        const ireiPegar = campoTipo.value === "irei-pegar";
-        const entrega = campoTipo.value === "Entrega";
-        const partes = [
-          `Olá! Gostaria de fazer um pedido:\n\n${linhas.join("\n")}`,
-        ];
-        if (total > 0) {
-          partes.push(`Total: ${formatarPreco(total)}`);
-        }
-
-        const dados = [
-          `Nome: ${campoNome.value.trim()}`,
-          entrega
-            ? `Entrega em: ${campoEndereco.value.trim()}`
-            : estouNoLocal
-            ? "Estou no estabelecimento"
-            : ireiPegar
-            ? "Retirada no local"
-            : "Retirada no local",
-          `Pagamento: ${campoPagamento.value}`
-        ];
-        if (estouNoLocal && campoMesa.value.trim()) {
-          dados.push(`Mesa: ${campoMesa.value.trim()}`);
-        }
-        if (campoObs.value.trim()) {
-          dados.push(`Observações: ${campoObs.value.trim()}`);
-        }
-        partes.push(dados.join("\n"));
-
-        window.open(
-          `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(partes.join("\n\n"))}`,
-          "_blank",
-          "noopener",
-        );
+        produtosCarrinho.clear();
+        atualizarCarrinho();
+        definirCarrinhoAberto(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
       }
 
-      document.getElementById("finalizar").addEventListener("click", comprar);
+      botaoFinalizar.addEventListener("click", comprar);
 
       /* ---------- API ---------- */
       function carregarProdutos(

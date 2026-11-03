@@ -47,12 +47,6 @@
         font-size: 26px; letter-spacing: .06em; text-transform: uppercase;
         margin-right: auto;
       }
-      #conexao {
-        font-family: var(--mono); font-size: 12px;
-        padding: 5px 12px; border-radius: 999px;
-        background: var(--mostarda); color: var(--tinta); font-weight: 700;
-      }
-      #conexao.on { background: var(--verde); color: #fff; }
       .btn {
         font-family: var(--texto); font-weight: 800; font-size: 13px;
         padding: 8px 14px; cursor: pointer;
@@ -143,7 +137,6 @@
   <body>
     <header>
       <h1>Painel de Pedidos</h1>
-      <span id="conexao">conectando…</span>
       <button class="btn" id="btn-teste" type="button">Pedido de teste</button>
       <button class="btn ruim" id="btn-limpar" type="button">Limpar tudo</button>
     </header>
@@ -301,31 +294,13 @@
       /* ---- Canal 2: outros aparelhos (PeerJS / WebRTC) ---- */
       try {
         const peer = new Peer(PAINEL_ID);
-        peer.on("open", () => {
-          $("conexao").textContent = "● online";
-          $("conexao").classList.add("on");
-        });
         peer.on("connection", (conn) => {
           conn.on("data", (d) => {
             receber(d);
             try { conn.send({ ok: true }); } catch {}
           });
         });
-        peer.on("error", (err) => {
-          $("conexao").classList.remove("on");
-          $("conexao").textContent =
-            err.type === "unavailable-id"
-              ? "painel já aberto em outra aba"
-              : "offline (só mesmo aparelho)";
-        });
-        peer.on("disconnected", () => {
-          $("conexao").classList.remove("on");
-          $("conexao").textContent = "reconectando…";
-          peer.reconnect();
-        });
-      } catch {
-        $("conexao").textContent = "offline (só mesmo aparelho)";
-      }
+      } catch {}
 
       $("btn-teste").onclick = () =>
         receber({

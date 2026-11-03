@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+      :root {
+        --papel: #f6ead4;
+        --papel-claro: #fff8e8;
+        --tinta: #1b1410;
+        --laranja: #ff6a13;
+        --mostarda: #ffc233;
+        --ketchup: #d62828;
+        --verde: #2e9e4f;
+        --display: "Anton", "Impact", sans-serif;
+        --texto: "Bricolage Grotesque", system-ui, sans-serif;
+        --mono: "Space Mono", ui-monospace, monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      body {
+        font-family: var(--texto);
+        color: var(--tinta);
+        background-color: var(--papel);
+        background-image: radial-gradient(rgba(27,20,16,.12) 1px, transparent 1.4px);
+        background-size: 18px 18px;
+        min-height: 100vh;
+      }
+      header {
+        position: sticky; top: 0; z-index: 10;
+        background: var(--tinta);
+        border-bottom: 4px solid var(--laranja);
+        color: var(--papel);
+        padding: 12px 20px;
+        display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      }
+      header h1 {
+        font-family: var(--display); font-weight: 400;
+        font-size: 26px; letter-spacing: .06em; text-transform: uppercase;
+        margin-right: auto;
+      }
+      #conexao {
+        font-family: var(--mono); font-size: 12px;
+        padding: 5px 12px; border-radius: 999px;
+        background: var(--mostarda); color: var(--tinta); font-weight: 700;
+      }
+      #conexao.on { background: var(--verde); color: #fff; }
+      .btn {
+        font-family: var(--texto); font-weight: 800; font-size: 13px;
+        padding: 8px 14px; cursor: pointer;
+        color: var(--tinta); background: var(--mostarda);
+        border: 2.5px solid var(--tinta); border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--tinta);
+      }
+      .btn:active { transform: translate(3px,3px); box-shadow: none; }
+      .btn.ok { background: var(--verde); color: #fff; }
+      .btn.ruim { background: var(--ketchup); color: var(--papel-claro); }
+      main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+      h2 {
+        font-family: var(--display); font-weight: 400;
+        font-size: clamp(32px, 6vw, 52px); text-transform: uppercase;
+        background: linear-gradient(transparent 62%, var(--mostarda) 62%);
+        display: inline-block; padding: 0 8px; margin: 28px 0 18px;
+      }
+      h2 small { font-family: var(--mono); font-size: 16px; }
+      .grade {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 22px;
+      }
+      .vazio {
+        font-family: var(--mono); font-size: 14px; padding: 16px 18px;
+        border: 3px dashed var(--tinta); border-radius: 14px;
+        background: var(--papel-claro);
+      }
+      .card {
+        position: relative;
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta); border-radius: 18px;
+        box-shadow: 6px 6px 0 var(--tinta);
+        padding: 20px 18px 16px;
+        display: flex; flex-direction: column; gap: 8px;
+        animation: entra .35s cubic-bezier(.3,1.6,.5,1);
+      }
+      @keyframes entra { from { opacity: 0; transform: scale(.9) rotate(-2deg); } }
+      .mesa {
+        position: absolute; top: -16px; right: -10px;
+        font-family: var(--display); font-size: 20px; letter-spacing: .04em;
+        color: var(--papel-claro); background: var(--ketchup);
+        border: 3px solid var(--tinta); padding: 5px 14px; border-radius: 999px;
+        transform: rotate(5deg); box-shadow: 3px 3px 0 var(--tinta);
+      }
+      .card h3 {
+        font-family: var(--display); font-weight: 400; font-size: 26px;
+        text-transform: uppercase; letter-spacing: .03em; padding-right: 70px;
+        overflow-wrap: anywhere;
+      }
+      .hora { font-family: var(--mono); font-size: 12px; opacity: .7; }
+      .card ul {
+        list-style: none; font-family: var(--mono); font-size: 14px;
+        border-top: 2px dashed var(--tinta); padding-top: 8px;
+      }
+      .card li { padding: 3px 0; }
+      .meta { font-family: var(--mono); font-size: 13px; }
+      .obs {
+        font-size: 13px; font-weight: 600; background: var(--mostarda);
+        border: 2px solid var(--tinta); border-radius: 8px; padding: 6px 10px;
+        overflow-wrap: anywhere;
+      }
+      .total { font-family: var(--mono); font-weight: 700; text-align: right; }
+      .acoes { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+      .tag {
+        display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 700;
+        padding: 3px 10px; border-radius: 999px; border: 2px solid var(--tinta);
+        background: var(--mostarda);
+      }
+      /* lista de outros */
+      .lista-outros { display: grid; gap: 10px; }
+      .linha {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+        background: var(--papel-claro); border: 3px solid var(--tinta);
+        border-radius: 14px; box-shadow: 4px 4px 0 var(--tinta);
+        padding: 12px 16px; animation: entra .35s ease;
+      }
+      .linha .nome { font-family: var(--display); font-size: 22px; letter-spacing: .03em; text-transform: uppercase; flex: 1 1 160px; overflow-wrap: anywhere; }
+      .linha .det { font-family: var(--mono); font-size: 13px; flex: 2 1 220px; }
+      .feitos { margin-top: 30px; }
+      .feitos summary { font-family: var(--mono); font-weight: 700; cursor: pointer; }
+      .feitos .linha { opacity: .6; box-shadow: none; margin-top: 8px; }
+      dialog { margin: auto; padding: 22px; border: 3px solid var(--tinta); border-radius: 18px; background: var(--papel-claro); max-width: min(92vw, 420px); }
+      dialog::backdrop { background: rgba(27,20,16,.7); }
+      dialog p { font-family: var(--mono); font-size: 13px; margin: 10px 0; overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Painel de Pedidos</h1>
+      <span id="conexao">conectando…</span>
+      <button class="btn" id="btn-teste" type="button">Pedido de teste</button>
+      <button class="btn ruim" id="btn-limpar" type="button">Limpar tudo</button>
+    </header>
+
+    <main>
+      <h2>Comendo no local <small id="n-local">0</small></h2>
+      <div class="grade" id="grade-local"></div>
+
+      <h2>Outros pedidos <small id="n-outros">0</small></h2>
+      <div class="lista-outros" id="lista-outros"></div>
+
+      <details class="feitos" id="feitos" hidden>
+        <summary>Concluídos (<span id="n-feitos">0</span>)</summary>
+        <div id="lista-feitos"></div>
+      </details>
+    </main>
+
+    <script>
+      /* Precisa ser IGUAL ao PAINEL_ID colocado no cardápio. */
+      const PAINEL_ID = "cardapio-painel-7f3k";
+      const CHAVE = "painel:pedidos";
+      const CANAL = "cardapio-pedidos";
+
+      const $ = (id) => document.getElementById(id);
+      const brl = (v) =>
+        Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+      let pedidos = [];
+      try { pedidos = JSON.parse(localStorage.getItem(CHAVE)) || []; } catch {}
+
+      const salvar = () => {
+        try { localStorage.setItem(CHAVE, JSON.stringify(pedidos)); } catch {}
+      };
+
+      const txt = (tag, cls, texto) => {
+        const el = document.createElement(tag);
+        if (cls) el.className = cls;
+        el.textContent = texto;
+        return el;
+      };
+
+      const hora = (ts) =>
+        new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+      const rotuloTipo = {
+        Entrega: "Entrega",
+        Retirada: "Retirada",
+        "irei-pegar": "Vai buscar",
+      };
+
+      function botoes(p) {
+        const acoes = document.createElement("div");
+        acoes.className = "acoes";
+        const ok = txt("button", "btn ok", p.feito ? "Reabrir" : "Concluir");
+        ok.type = "button";
+        ok.onclick = () => { p.feito = !p.feito; salvar(); render(); };
+        const del = txt("button", "btn ruim", "Excluir");
+        del.type = "button";
+        del.onclick = () => {
+          pedidos = pedidos.filter((x) => x.id !== p.id);
+          salvar(); render();
+        };
+        acoes.append(ok, del);
+        return acoes;
+      }
+
+      function cardLocal(p) {
+        const c = document.createElement("div");
+        c.className = "card";
+        c.append(txt("span", "mesa", p.mesa ? `Mesa ${p.mesa}` : "Sem mesa"));
+        c.append(txt("h3", "", p.nome || "Sem nome"));
+        c.append(txt("span", "hora", `Chegou às ${hora(p.recebidoEm)}`));
+        const ul = document.createElement("ul");
+        for (const i of p.itens || []) ul.append(txt("li", "", `${i.quantidade}x ${i.nome}`));
+        c.append(ul);
+        c.append(txt("p", "meta", `Pagamento: ${p.pagamento || "-"}`));
+        if (p.obs) c.append(txt("p", "obs", `Obs: ${p.obs}`));
+        if (p.total) c.append(txt("p", "total", `Total: ${brl(p.total)}`));
+        c.append(botoes(p));
+        return c;
+      }
+
+      function linhaOutro(p) {
+        const l = document.createElement("div");
+        l.className = "linha";
+        l.append(txt("span", "nome", p.nome || "Sem nome"));
+        l.append(txt("span", "tag", rotuloTipo[p.tipo] || p.tipo));
+        const resumo = (p.itens || []).map((i) => `${i.quantidade}x ${i.nome}`).join(", ");
+        let det = resumo;
+        if (p.tipo === "Entrega" && p.endereco) det += ` — ${p.endereco}`;
+        l.append(txt("span", "det", `${hora(p.recebidoEm)} · ${det}`));
+        l.append(botoes(p));
+        return l;
+      }
+
+      function render() {
+        const ativos = pedidos.filter((p) => !p.feito);
+        const feitos = pedidos.filter((p) => p.feito);
+        const local = ativos.filter((p) => p.tipo === "estou-no-local");
+        const outros = ativos.filter((p) => p.tipo !== "estou-no-local");
+
+        $("n-local").textContent = local.length;
+        $("n-outros").textContent = outros.length;
+
+        $("grade-local").replaceChildren(
+          ...(local.length ? local.map(cardLocal) : [txt("p", "vazio", "Nenhum pedido no local por enquanto.")]),
+        );
+        $("lista-outros").replaceChildren(
+          ...(outros.length ? outros.map(linhaOutro) : [txt("p", "vazio", "Nenhum outro pedido por enquanto.")]),
+        );
+
+        $("feitos").hidden = feitos.length === 0;
+        $("n-feitos").textContent = feitos.length;
+        $("lista-feitos").replaceChildren(
+          ...feitos.map((p) => {
+            const l = linhaOutro(p);
+            return l;
+          }),
+        );
+      }
+
+      function receber(dado) {
+        if (!dado || typeof dado !== "object") return;
+        const p = {
+          id: String(dado.id || Date.now() + Math.random()),
+          recebidoEm: Date.now(),
+          feito: false,
+          nome: String(dado.nome || "").slice(0, 80),
+          tipo: String(dado.tipo || ""),
+          mesa: String(dado.mesa || "").slice(0, 20),
+          endereco: String(dado.endereco || "").slice(0, 200),
+          pagamento: String(dado.pagamento || "").slice(0, 30),
+          obs: String(dado.obs || "").slice(0, 300),
+          total: Number(dado.total) || 0,
+          itens: Array.isArray(dado.itens)
+            ? dado.itens.slice(0, 50).map((i) => ({
+                nome: String(i.nome || "").slice(0, 80),
+                quantidade: Number(i.quantidade) || 1,
+              }))
+            : [],
+        };
+        if (pedidos.some((x) => x.id === p.id)) return;
+        pedidos.unshift(p);
+        salvar();
+        render();
+        try { new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==").play().catch(() => {}); } catch {}
+      }
+
+      /* ---- Canal 1: mesmo navegador/aparelho ---- */
+      try {
+        const bc = new BroadcastChannel(CANAL);
+        bc.onmessage = (e) => receber(e.data);
+      } catch {}
+
+      /* ---- Canal 2: outros aparelhos (PeerJS / WebRTC) ---- */
+      try {
+        const peer = new Peer(PAINEL_ID);
+        peer.on("open", () => {
+          $("conexao").textContent = "● online";
+          $("conexao").classList.add("on");
+        });
+        peer.on("connection", (conn) => {
+          conn.on("data", (d) => {
+            receber(d);
+            try { conn.send({ ok: true }); } catch {}
+          });
+        });
+        peer.on("error", (err) => {
+          $("conexao").classList.remove("on");
+          $("conexao").textContent =
+            err.type === "unavailable-id"
+              ? "painel já aberto em outra aba"
+              : "offline (só mesmo aparelho)";
+        });
+        peer.on("disconnected", () => {
+          $("conexao").classList.remove("on");
+          $("conexao").textContent = "reconectando…";
+          peer.reconnect();
+        });
+      } catch {
+        $("conexao").textContent = "offline (só mesmo aparelho)";
+      }
+
+      $("btn-teste").onclick = () =>
+        receber({
+          id: "t" + Date.now(),
+          nome: "Cliente Teste",
+          tipo: Math.random() > 0.5 ? "estou-no-local" : "Entrega",
+          mesa: "5",
+          endereco: "Rua Exemplo, 123",
+          pagamento: "Pix",
+          obs: "sem cebola",
+          total: 32.5,
+          itens: [{ nome: "X-Burger", quantidade: 2 }, { nome: "Suco de laranja", quantidade: 1 }],
+        });
+
+      $("btn-limpar").onclick = () => {
+        if (confirm("Apagar todos os pedidos do painel?")) {
+          pedidos = [];
+          salvar(); render();
+        }
+      };
+
+      render();
+    </script>
+  </body>
+</html>

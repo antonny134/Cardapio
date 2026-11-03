@@ -748,7 +748,6 @@
           box-shadow 0.15s,
           background 0.15s;
       }
-
     </style>
   </head>
   <body>
@@ -773,8 +772,10 @@
 
     <div class="faixa" aria-hidden="true">
       <div>
-        <span>Feito na hora</span>★<span>Bem recheado</span>★<span>Peça já</span>★<span>Sem frescura</span>★
-        <span>Feito na hora</span>★<span>Bem recheado</span>★<span>Peça já</span>★<span>Sem frescura</span>★
+        <span>Feito na hora</span>★<span>Bem recheado</span>★<span>Peça já</span
+        >★<span>Sem frescura</span>★ <span>Feito na hora</span>★<span
+          >Bem recheado</span
+        >★<span>Peça já</span>★<span>Sem frescura</span>★
       </div>
     </div>
 
@@ -803,7 +804,7 @@
     </section>
 
     <section class="painel-carrinho" id="carrinho" hidden>
-      <form  class="form-fechar" id="form-fechar" novalidate>
+      <form class="form-fechar" id="form-fechar" novalidate>
         <button type="button" id="fechar-carrinho">Fechar comanda</button>
       </form>
       <h3>Comanda</h3>
@@ -826,6 +827,8 @@
           <select id="pedido-tipo">
             <option value="Entrega">Entrega</option>
             <option value="Retirada">Retirada no local</option>
+            <option value="estou-no-local">Estou no local</option>
+            <option value="irei-pegar">Irei pegar no Estabelecimento</option>
           </select>
         </label>
         <label id="campo-endereco">
@@ -835,6 +838,14 @@
             id="pedido-endereco"
             autocomplete="street-address"
             placeholder="Rua, número, bairro"
+          />
+        </label>
+        <label id="campo-mesa" hidden>
+          Número da mesa
+          <input
+            type="text"
+            id="pedido-mesa"
+            placeholder="Ex.: 5"
           />
         </label>
         <label>
@@ -856,8 +867,9 @@
         <p id="erro-pedido" role="alert" hidden></p>
       </form>
 
-      <button type="button" id="finalizar">Fazer encomenda pelo WhatsApp</button>
-      
+      <button type="button" id="finalizar">
+        Fazer encomenda pelo WhatsApp
+      </button>
     </section>
     <div id="aviso" class="aviso" role="alert" hidden></div>
     <dialog id="detalhes-produto">
@@ -884,6 +896,8 @@
       </ul>
     </footer>
     <script>
+      const campoLocalidade = document.getElementById("campo-localidade");
+      const rotuloMesa = document.getElementById("campo-mesa");
       const produtosCarrinho = new Map();
       const linkCarrinho = document.getElementById("abrir-carrinho");
       const painelCarrinho = document.getElementById("carrinho");
@@ -901,6 +915,7 @@
       const campoNome = document.getElementById("pedido-nome");
       const campoTipo = document.getElementById("pedido-tipo");
       const campoEndereco = document.getElementById("pedido-endereco");
+      const campoMesa = document.getElementById("pedido-mesa");
       const rotuloEndereco = document.getElementById("campo-endereco");
       const campoPagamento = document.getElementById("pedido-pagamento");
       const campoObs = document.getElementById("pedido-obs");
@@ -978,6 +993,7 @@
           nome: campoNome.value,
           tipo: campoTipo.value,
           endereco: campoEndereco.value,
+          mesa: campoMesa.value,
           pagamento: campoPagamento.value,
           obs: campoObs.value,
         });
@@ -988,6 +1004,7 @@
         if (salvo && typeof salvo === "object") {
           campoNome.value = String(salvo.nome ?? "");
           campoEndereco.value = String(salvo.endereco ?? "");
+          campoMesa.value = String(salvo.mesa ?? "");
           campoObs.value = String(salvo.obs ?? "");
           if ([...campoTipo.options].some((o) => o.value === salvo.tipo)) {
             campoTipo.value = salvo.tipo;
@@ -998,11 +1015,12 @@
             campoPagamento.value = salvo.pagamento;
           }
         }
-        alternarEndereco();
+        alternarCamposPedido();
       }
 
-      function alternarEndereco() {
+      function alternarCamposPedido() {
         rotuloEndereco.hidden = campoTipo.value !== "Entrega";
+        rotuloMesa.hidden = campoTipo.value !== "estou-no-local";
       }
 
       /* ---------- carrinho ---------- */
@@ -1124,7 +1142,6 @@
           linkCarrinho.focus();
           return;
         }
-        
 
         // devolve o foco ao botão usado, para quem navega pelo teclado
         if (acao !== "excluir-item" && produtosCarrinho.has(id)) {
@@ -1308,15 +1325,18 @@
       listaBebidas.addEventListener("click", tratarCliqueProduto);
 
       /* ---------- pedido ---------- */
-      formPedido.addEventListener("submit", (evento) => evento.preventDefault());
+      formPedido.addEventListener("submit", (evento) =>
+        evento.preventDefault(),
+      );
       formPedido.addEventListener("input", (evento) => {
         evento.target.classList.remove("invalido");
         erroPedido.hidden = true;
         salvarPedido();
       });
       campoTipo.addEventListener("change", () => {
-        alternarEndereco();
+        alternarCamposPedido();
         campoEndereco.classList.remove("invalido");
+        campoMesa.classList.remove("invalido");
         erroPedido.hidden = true;
         salvarPedido();
       });
@@ -1355,7 +1375,10 @@
           mensagemCarrinho.hidden = false;
           mensagemCarrinho.textContent =
             "Seu carrinho está vazio. Adicione algo antes de comprar.";
-          painelCarrinho.scrollIntoView({ behavior: "smooth", block: "center" });
+          painelCarrinho.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
           mostrarAviso(AVISO_CARRINHO_VAZIO);
           return;
         }
@@ -1382,7 +1405,8 @@
           return `• ${quantidade}x ${nome}${preco}`;
         });
         const total = calcularTotal(itens);
-
+        const estouNoLocal = campoTipo.value === "estou-no-local";
+        const ireiPegar = campoTipo.value === "irei-pegar";
         const entrega = campoTipo.value === "Entrega";
         const partes = [
           `Olá! Gostaria de fazer um pedido:\n\n${linhas.join("\n")}`,
@@ -1395,9 +1419,16 @@
           `Nome: ${campoNome.value.trim()}`,
           entrega
             ? `Entrega em: ${campoEndereco.value.trim()}`
+            : estouNoLocal
+            ? "Estou no estabelecimento"
+            : ireiPegar
+            ? "Retirada no local"
             : "Retirada no local",
-          `Pagamento: ${campoPagamento.value}`,
+          `Pagamento: ${campoPagamento.value}`
         ];
+        if (estouNoLocal && campoMesa.value.trim()) {
+          dados.push(`Mesa: ${campoMesa.value.trim()}`);
+        }
         if (campoObs.value.trim()) {
           dados.push(`Observações: ${campoObs.value.trim()}`);
         }
@@ -1413,13 +1444,17 @@
       document.getElementById("finalizar").addEventListener("click", comprar);
 
       /* ---------- API ---------- */
-      function carregarProdutos(url, lista, status, classeCartao, imagemPadrao) {
+      function carregarProdutos(
+        url,
+        lista,
+        status,
+        classeCartao,
+        imagemPadrao,
+      ) {
         fetch(url)
           .then((resposta) => {
             if (!resposta.ok) {
-              throw new Error(
-                `A API respondeu com status ${resposta.status}.`,
-              );
+              throw new Error(`A API respondeu com status ${resposta.status}.`);
             }
             return resposta.json();
           })
@@ -1467,8 +1502,6 @@
         "bebida",
         "/imagens/bebida-suco-de-laranja.jpg",
       );
-
-      
     </script>
   </body>
 </html>

@@ -934,14 +934,9 @@
       const campoPagamento = document.getElementById("pedido-pagamento");
       const campoObs = document.getElementById("pedido-obs");
       const erroPedido = document.getElementById("erro-pedido");
-
-      // sem barra no final (antes gerava "//produtos" nas requisições)
+    
       const API_BASE = "https://mainpy-one.vercel.app";
-
-      // formato: 55 + DDD + número (usado só no link do rodapé)
-      const WHATSAPP = "5598988602161";
-
-      // Precisa ser IGUAL ao PAINEL_ID do painel.html
+  
       const PAINEL_ID = "cardapio-painel-7f3k";
       const CANAL_PAINEL = "cardapio-pedidos";
 
@@ -1514,13 +1509,13 @@
             "Não foi possível enviar o pedido. Tente novamente em instantes.",
           );
           return;
+        } else {
+          produtosCarrinho.clear();
+          atualizarCarrinho();
+          definirCarrinhoAberto(false);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
         }
-
-        produtosCarrinho.clear();
-        atualizarCarrinho();
-        definirCarrinhoAberto(false);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
       }
 
       botaoFinalizar.addEventListener("click", comprar);
@@ -1554,9 +1549,6 @@
           });
       }
 
-      /* ---------- rodapé ---------- */
-      // Link do Instagram da empresa (ex.: "https://instagram.com/suaempresa").
-      // Enquanto estiver vazio, o link fica escondido no rodapé.
       const INSTAGRAM_URL = "";
 
       document.getElementById("link-whatsapp").href =

@@ -849,11 +849,7 @@
         </label>
         <label id="campo-mesa" hidden>
           Número da mesa
-          <input
-            type="text"
-            id="pedido-mesa"
-            placeholder="Ex.: 5"
-          />
+          <input type="text" id="pedido-mesa" placeholder="Ex.: 5" />
         </label>
         <label>
           Pagamento
@@ -1472,13 +1468,13 @@
             "Não foi possível enviar o pedido. Tente novamente em instantes.",
           );
           return;
+        } else {
+          produtosCarrinho.clear();
+          atualizarCarrinho();
+          definirCarrinhoAberto(false);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
         }
-
-        produtosCarrinho.clear();
-        atualizarCarrinho();
-        definirCarrinhoAberto(false);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
       }
 
       botaoFinalizar.addEventListener("click", comprar);

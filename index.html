@@ -10,12 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <script
-      src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
-      integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
       :root {
         --papel: #f6ead4;
@@ -830,7 +825,6 @@
           <input
             type="text"
             id="pedido-nome"
-            maxlength="60"
             autocomplete="name"
             placeholder="Como podemos te chamar?"
           />
@@ -849,7 +843,6 @@
           <input
             type="text"
             id="pedido-endereco"
-            maxlength="160"
             autocomplete="street-address"
             placeholder="Rua, número, bairro"
           />
@@ -859,7 +852,6 @@
           <input
             type="text"
             id="pedido-mesa"
-            maxlength="10"
             placeholder="Ex.: 5"
           />
         </label>
@@ -875,7 +867,6 @@
           Observações
           <textarea
             id="pedido-obs"
-            maxlength="300"
             rows="2"
             placeholder="Ex.: sem cebola, troco para R$ 50"
           ></textarea>
@@ -934,9 +925,14 @@
       const campoPagamento = document.getElementById("pedido-pagamento");
       const campoObs = document.getElementById("pedido-obs");
       const erroPedido = document.getElementById("erro-pedido");
-    
+
+      // sem barra no final (antes gerava "//produtos" nas requisições)
       const API_BASE = "https://mainpy-one.vercel.app";
-  
+
+      // formato: 55 + DDD + número (usado só no link do rodapé)
+      const WHATSAPP = "5598988602161";
+
+      // Precisa ser IGUAL ao PAINEL_ID do painel.html
       const PAINEL_ID = "cardapio-painel-7f3k";
       const CANAL_PAINEL = "cardapio-pedidos";
 
@@ -1137,7 +1133,7 @@
         if (acao === "excluir-item") {
           produtosCarrinho.delete(id);
         } else if (acao === "aumentar") {
-          item.quantidade = Math.min(item.quantidade + 1, 99);
+          item.quantidade += 1;
         } else if (acao === "diminuir") {
           item.quantidade -= 1;
           if (item.quantidade <= 0) {
@@ -1416,13 +1412,7 @@
               conn.on("error", () => terminar(false));
               conn.on("open", () => conn.send(pedido));
               conn.on("data", (resposta) => {
-                // só aceita a confirmação do painel esperado e deste pedido
-                if (
-                  conn.peer === PAINEL_ID &&
-                  resposta &&
-                  resposta.ok === true &&
-                  resposta.id === pedido.id
-                ) {
+                if (resposta && resposta.ok) {
                   terminar(true);
                 }
               });
@@ -1433,39 +1423,8 @@
         });
       }
 
-      // Reconstrói os itens a partir dos produtos carregados da API:
-      // nome e preço nunca vêm do localStorage (que o usuário pode editar).
-      function itensConfiaveis() {
-        const itens = [];
-        for (const [chave, { quantidade }] of produtosCarrinho) {
-          const produto = produtosCarregados.find((p) => p.chave === chave);
-          if (!produto || !valorValido(produto.valor)) {
-            continue;
-          }
-          itens.push({
-            produto: chave,
-            nome: String(produto.nome).slice(0, 80),
-            valor: produto.valor,
-            quantidade: Math.min(Math.max(1, quantidade | 0), 99),
-          });
-        }
-        return itens;
-      }
-
       async function comprar() {
-        const itens = itensConfiaveis();
-        if (itens.length !== produtosCarrinho.size && produtosCarrinho.size) {
-          mostrarAviso(
-            "Alguns itens do carrinho não estão mais disponíveis. Revise sua comanda.",
-          );
-          for (const chave of [...produtosCarrinho.keys()]) {
-            if (!itens.some((i) => i.produto === chave)) {
-              produtosCarrinho.delete(chave);
-            }
-          }
-          atualizarCarrinho();
-          return;
-        }
+        const itens = [...produtosCarrinho.values()];
         if (itens.length === 0) {
           painelCarrinho.hidden = false;
           linkCarrinho.setAttribute("aria-expanded", "true");
@@ -1493,7 +1452,11 @@
           pagamento: campoPagamento.value,
           obs: campoObs.value.trim(),
           total: calcularTotal(itens),
-          itens,
+          itens: itens.map(({ nome, quantidade, valor }) => ({
+            nome,
+            quantidade,
+            valor,
+          })),
         };
 
         botaoFinalizar.disabled = true;
@@ -1509,13 +1472,13 @@
             "Não foi possível enviar o pedido. Tente novamente em instantes.",
           );
           return;
-        } else {
-          produtosCarrinho.clear();
-          atualizarCarrinho();
-          definirCarrinhoAberto(false);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
         }
+
+        produtosCarrinho.clear();
+        atualizarCarrinho();
+        definirCarrinhoAberto(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
       }
 
       botaoFinalizar.addEventListener("click", comprar);
@@ -1549,6 +1512,9 @@
           });
       }
 
+      /* ---------- rodapé ---------- */
+      // Link do Instagram da empresa (ex.: "https://instagram.com/suaempresa").
+      // Enquanto estiver vazio, o link fica escondido no rodapé.
       const INSTAGRAM_URL = "";
 
       document.getElementById("link-whatsapp").href =

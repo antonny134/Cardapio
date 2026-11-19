@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadárpio | Gestão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+      * { padding: 0; box-sizing: border-box; margin: 0; }
+      [hidden] { display: none !important; }
+      :root {
+        --papel: #f6ead4;
+        --papel-claro: #fff8e8;
+        --tinta: #1b1410;
+        --laranja: #ff6a13;
+        --mostarda: #ffc233;
+        --ketchup: #d62828;
+        --verde: #2f9e44;
+        --sombra: 6px 6px 0 var(--tinta);
+        --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+        --texto: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+        --mono: "Space Mono", ui-monospace, "Courier New", monospace;
+      }
+      body {
+        font-family: var(--texto);
+        color: var(--tinta);
+        background-color: var(--papel);
+        background-image: radial-gradient(rgba(27, 20, 16, 0.12) 1px, transparent 1px);
+        background-size: 18px 18px;
+        min-height: 100vh;
+      }
+      button, input, select, textarea { font-family: inherit; color: inherit; }
+      button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+        outline: 3px solid var(--laranja);
+        outline-offset: 2px;
+      }
+
+      /* ---------- header ---------- */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 18px 28px;
+        background: var(--mostarda);
+        border-bottom: 3px solid var(--tinta);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .marca { display: flex; align-items: center; gap: 14px; }
+      .logo {
+        font-family: var(--display);
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+        background: var(--laranja);
+        color: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        box-shadow: 4px 4px 0 var(--tinta);
+        padding: 4px 12px;
+        transform: rotate(-2deg);
+      }
+      header h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 2rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .topo-dir { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .data, .conexao {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: var(--papel-claro);
+        border: 2px solid var(--tinta);
+        padding: 6px 12px;
+      }
+      .data { text-transform: capitalize; }
+      .conexao::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid var(--tinta);
+        background: var(--ketchup);
+        margin-right: 8px;
+      }
+      .conexao.on::before { background: var(--verde); }
+
+      main {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 32px 20px 60px;
+        display: grid;
+        gap: 30px;
+      }
+
+      /* ---------- stats ---------- */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 22px;
+      }
+      .stat {
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        box-shadow: var(--sombra);
+        padding: 18px 20px;
+        position: relative;
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .stat:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--tinta); }
+      .stat small {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+      }
+      .stat strong {
+        display: block;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 2.6rem;
+        margin-top: 6px;
+        line-height: 1.1;
+      }
+      .stat::after {
+        content: "";
+        position: absolute;
+        top: -3px;
+        right: 16px;
+        width: 34px;
+        height: 14px;
+        border: 3px solid var(--tinta);
+        border-top: none;
+        background: var(--cor, var(--laranja));
+      }
+      .stat:nth-child(2) { --cor: var(--mostarda); }
+      .stat:nth-child(3) { --cor: var(--ketchup); }
+      .stat:nth-child(4) { --cor: var(--verde); }
+
+      /* ---------- abas ---------- */
+      .abas { display: flex; gap: 12px; flex-wrap: wrap; }
+      .aba {
+        font-family: var(--display);
+        font-size: 1.15rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        padding: 8px 22px;
+        cursor: pointer;
+        box-shadow: 4px 4px 0 var(--tinta);
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      .aba:hover { transform: translate(-1px, -1px); }
+      .aba.ativa {
+        background: var(--laranja);
+        color: var(--papel-claro);
+        transform: translate(3px, 3px);
+        box-shadow: 1px 1px 0 var(--tinta);
+      }
+      .aba .n {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        background: var(--tinta);
+        color: var(--mostarda);
+        padding: 1px 7px;
+        border-radius: 99px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+
+      section.painel { display: none; }
+      section.painel.ativo { display: block; }
+
+      .titulo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .titulo h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 1.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .titulo span { font-family: var(--mono); font-size: 0.78rem; }
+
+      /* ---------- botões ---------- */
+      .btn {
+        font-family: var(--display);
+        font-size: 1.05rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: var(--laranja);
+        color: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        box-shadow: 4px 4px 0 var(--tinta);
+        padding: 8px 22px;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      .btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--tinta); }
+      .btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--tinta); }
+      .btn:disabled { opacity: 0.6; cursor: wait; }
+      .btn.claro { background: var(--papel-claro); color: var(--tinta); }
+      .mini {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: 2px solid var(--tinta);
+        background: var(--papel);
+        padding: 5px 9px;
+        cursor: pointer;
+      }
+      .mini:hover { background: var(--mostarda); }
+      .mini.del:hover { background: var(--ketchup); color: #fff; }
+
+      /* ---------- filtros ---------- */
+      .filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+      .chip {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: 2px solid var(--tinta);
+        background: var(--papel-claro);
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      .chip.ativo { background: var(--tinta); color: var(--mostarda); }
+
+      /* ---------- pedidos ---------- */
+      .pedidos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        gap: 24px;
+      }
+      .pedido {
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        box-shadow: var(--sombra);
+        padding: 16px 18px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .pedido.novo { animation: chega 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); border-color: var(--ketchup); }
+      @keyframes chega { from { transform: scale(0.9) rotate(-2deg); opacity: 0; } }
+      .pedido-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+      .pedido-topo b { font-family: var(--display); font-weight: 400; font-size: 1.4rem; letter-spacing: 1px; }
+      .hora { font-family: var(--mono); font-size: 0.75rem; }
+      .pedido-cli { font-weight: 800; font-size: 1.1rem; }
+      .info { font-family: var(--mono); font-size: 0.78rem; display: grid; gap: 2px; }
+      .info em { font-style: normal; font-weight: 700; }
+      .obs {
+        font-size: 0.85rem;
+        background: var(--mostarda);
+        border: 2px solid var(--tinta);
+        padding: 6px 10px;
+        overflow-wrap: anywhere;
+      }
+      .pedido ul {
+        list-style: none;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        border-top: 2px dashed var(--tinta);
+        border-bottom: 2px dashed var(--tinta);
+        padding: 8px 0;
+        display: grid;
+        gap: 4px;
+      }
+      .pedido li { display: flex; justify-content: space-between; gap: 10px; }
+      .pedido-rodape { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+      .total { font-family: var(--display); font-size: 1.5rem; }
+      .pedido-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .status {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: 2px solid var(--tinta);
+        padding: 5px 10px;
+        cursor: pointer;
+        background: var(--mostarda);
+      }
+      .status.novo { background: var(--ketchup); color: var(--papel-claro); }
+      .status.pronto { background: var(--laranja); color: var(--papel-claro); }
+      .status.entregue { background: var(--verde); color: var(--papel-claro); }
+
+      /* ---------- produtos ---------- */
+      .tabela-wrap {
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        box-shadow: var(--sombra);
+        overflow-x: auto;
+      }
+      table { width: 100%; border-collapse: collapse; min-width: 640px; }
+      th {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: left;
+        background: var(--tinta);
+        color: var(--mostarda);
+        padding: 12px 14px;
+      }
+      td { padding: 10px 14px; border-bottom: 2px solid rgba(27, 20, 16, 0.15); font-weight: 600; vertical-align: middle; }
+      tr:last-child td { border-bottom: none; }
+      td.preco { font-family: var(--mono); font-weight: 700; white-space: nowrap; }
+      td img {
+        width: 52px;
+        height: 52px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid var(--tinta);
+        background: var(--mostarda);
+        display: block;
+      }
+      td small { display: block; font-weight: 400; opacity: 0.7; font-size: 0.78rem; max-width: 340px; }
+      .tag {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: var(--mostarda);
+        border: 2px solid var(--tinta);
+        padding: 2px 8px;
+      }
+      .tag.bebida { background: var(--laranja); color: var(--papel-claro); }
+      .acoes { display: flex; gap: 8px; }
+      .vazio { font-family: var(--mono); text-align: center; padding: 30px; grid-column: 1 / -1; }
+
+      /* ---------- modal ---------- */
+      dialog {
+        margin: auto;
+        width: min(92vw, 460px);
+        padding: 26px 24px 22px;
+        border: 3px solid var(--tinta);
+        background: var(--papel-claro);
+        color: var(--tinta);
+        box-shadow: 10px 10px 0 var(--tinta);
+      }
+      dialog::backdrop { background: rgba(27, 20, 16, 0.7); backdrop-filter: blur(3px); }
+      dialog h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 1.9rem;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .campos { display: grid; gap: 12px; }
+      .campos label {
+        display: grid;
+        gap: 5px;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .campos input, .campos select, .campos textarea {
+        width: 100%;
+        padding: 9px 11px;
+        font: 400 0.95rem var(--texto);
+        text-transform: none;
+        letter-spacing: 0;
+        background: var(--papel);
+        border: 2px solid var(--tinta);
+        resize: vertical;
+      }
+      .campos input:focus, .campos select:focus, .campos textarea:focus { background: #fff; }
+      .linha-foto { display: flex; gap: 8px; }
+      .linha-foto input { flex: 1; min-width: 0; }
+      .erro-form { color: var(--ketchup); font-weight: 800; font-size: 0.85rem; }
+      .modal-botoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+      /* ---------- aviso ---------- */
+      .aviso {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        z-index: 50;
+        max-width: min(92vw, 420px);
+        padding: 12px 20px;
+        font-weight: 800;
+        text-align: center;
+        background: var(--mostarda);
+        border: 3px solid var(--tinta);
+        box-shadow: 6px 6px 0 var(--tinta);
+        transform: translateX(-50%);
+        animation: sobe 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+      }
+      @keyframes sobe { from { opacity: 0; transform: translateX(-50%) translateY(24px); } }
+
+      /* ---------- recibo (só aparece na impressão) ---------- */
+      #recibo { display: none; }
+      @media print {
+        @page { margin: 4mm; }
+        body { background: #fff !important; }
+        body > *:not(#recibo) { display: none !important; }
+        #recibo {
+          display: block;
+          width: 72mm;
+          margin: 0 auto;
+          font: 12px/1.45 "Courier New", ui-monospace, monospace;
+          color: #000;
+        }
+        #recibo h1 { font: 700 22px "Courier New", monospace; text-align: center; letter-spacing: 2px; }
+        #recibo .c { text-align: center; }
+        #recibo hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; }
+        #recibo .lin { display: flex; justify-content: space-between; gap: 8px; }
+        #recibo .tot { font-weight: 700; font-size: 15px; margin-top: 4px; }
+      }
+
+      @media (max-width: 600px) {
+        header { padding: 14px 16px; }
+        header h3 { font-size: 1.5rem; }
+        main { padding: 22px 14px 50px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="marca">
+        <div class="logo">CADÁRPIO</div>
+        <h3>GESTÃO</h3>
+      </div>
+      <div class="topo-dir">
+        <div class="conexao" id="conexao">Conectando...</div>
+        <div class="data" id="data"></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="stats">
+        <div class="stat"><small>Pedidos hoje</small><strong id="sPedidos">0</strong></div>
+        <div class="stat"><small>Faturamento hoje</small><strong id="sFat">R$ 0</strong></div>
+        <div class="stat"><small>Em aberto</small><strong id="sAberto">0</strong></div>
+        <div class="stat"><small>Produtos no cardápio</small><strong id="sProd">0</strong></div>
+      </div>
+
+      <div class="abas">
+        <button class="aba ativa" data-aba="pedidos">Pedidos <span class="n" id="nAberto">0</span></button>
+        <button class="aba" data-aba="produtos">Produtos</button>
+      </div>
+
+      <section class="painel ativo" id="pedidos">
+        <div class="titulo">
+          <h2>Fila de pedidos</h2>
+          <button class="mini del" id="limparEntregues">Limpar entregues</button>
+        </div>
+        <div class="filtros" id="filtros"></div>
+        <div class="pedidos" id="listaPedidos"></div>
+      </section>
+
+      <section class="painel" id="produtos">
+        <div class="titulo">
+          <h2>Cardápio</h2>
+          <button class="btn" id="novoProduto">Novo produto</button>
+        </div>
+        <div class="tabela-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th>Produto</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="listaProdutos"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="modal">
+      <form id="form" novalidate>
+        <h2 id="modalTitulo">Novo produto</h2>
+        <div class="campos">
+          <label>Nome<input id="fNome" autocomplete="off" /></label>
+          <label>Descrição<textarea id="fDesc" rows="2"></textarea></label>
+          <label>Preço (R$)<input id="fPreco" type="number" step="0.01" min="0" /></label>
+          <label>Categoria
+            <select id="fCat">
+              <option value="lanche">Lanche</option>
+              <option value="bebida">Bebida</option>
+            </select>
+          </label>
+          <label>Foto (URL ou arquivo)
+            <div class="linha-foto">
+              <input id="fFoto" placeholder="https://..." />
+              <button type="button" class="mini" id="fEscolher">Arquivo</button>
+            </div>
+            <input type="file" id="fArquivo" accept="image/*" hidden />
+          </label>
+          <p class="erro-form" id="fErro" role="alert" hidden></p>
+        </div>
+        <div class="modal-botoes">
+          <button type="button" class="btn claro" id="fCancelar">Cancelar</button>
+          <button type="submit" class="btn" id="fSalvar">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="recibo" aria-hidden="true"></div>
+    <div class="aviso" id="aviso" role="alert" hidden></div>
+
+    <script>
+      /* ---------- configuração (igual ao index.html) ---------- */
+      const API_BASE = "https://mainpy-one.vercel.app";
+      const PAINEL_ID = "cardapio-painel-7f3k";
+      const CANAL_PAINEL = "cardapio-pedidos";
+      const CHAVE_PEDIDOS = "gestao:pedidos";
+
+      const $ = (id) => document.getElementById(id);
+      const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      const esc = (t) =>
+        String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+      const lerLocal = (k, padrao) => {
+        try { return JSON.parse(localStorage.getItem(k)) ?? padrao; } catch { return padrao; }
+      };
+      const salvarLocal = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+      let pedidos = lerLocal(CHAVE_PEDIDOS, []);
+      let produtos = [];
+      let filtro = "todos";
+      let produtosStatus = "Carregando produtos...";
+
+      const fluxo = ["novo", "preparo", "pronto", "entregue"];
+      const rotulo = { novo: "Novo", preparo: "Em preparo", pronto: "Pronto", entregue: "Entregue" };
+      const rotuloTipo = {
+        Entrega: "Entrega",
+        Retirada: "Retirada no local",
+        "estou-no-local": "Está no local",
+        "irei-pegar": "Vai retirar no estabelecimento",
+      };
+
+      /* ---------- aviso ---------- */
+      let tAviso;
+      function aviso(texto) {
+        const el = $("aviso");
+        el.textContent = texto;
+        el.hidden = false;
+        clearTimeout(tAviso);
+        tAviso = setTimeout(() => (el.hidden = true), 3500);
+      }
+
+      function bip() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "square";
+          o.frequency.value = 880;
+          g.gain.value = 0.05;
+          o.connect(g).connect(ctx.destination);
+          o.start();
+          o.stop(ctx.currentTime + 0.18);
+        } catch {}
+      }
+
+      /* ---------- stats ---------- */
+      const ehHoje = (ts) => new Date(ts).toDateString() === new Date().toDateString();
+
+      function renderStats() {
+        const hoje = pedidos.filter((p) => ehHoje(p.recebidoEm));
+        const abertos = pedidos.filter((p) => p.status !== "entregue").length;
+        $("sPedidos").textContent = hoje.length;
+        $("sFat").textContent = brl(hoje.reduce((s, p) => s + p.total, 0));
+        $("sAberto").textContent = abertos;
+        $("nAberto").textContent = abertos;
+        $("sProd").textContent = produtos.length;
+      }
+
+      /* ---------- pedidos ---------- */
+      function renderFiltros() {
+        const opcoes = [["todos", "Todos"], ...fluxo.map((s) => [s, rotulo[s]])];
+        $("filtros").innerHTML = opcoes
+          .map(([k, t]) => {
+            const n = k === "todos" ? pedidos.length : pedidos.filter((p) => p.status === k).length;
+            return `<button class="chip ${filtro === k ? "ativo" : ""}" data-f="${k}">${t} (${n})</button>`;
+          })
+          .join("");
+      }
+
+      function renderPedidos(novoId) {
+        renderFiltros();
+        const el = $("listaPedidos");
+        const lista = pedidos
+          .filter((p) => filtro === "todos" || p.status === filtro)
+          .sort((a, b) => b.recebidoEm - a.recebidoEm);
+        if (!lista.length) {
+          el.innerHTML = '<p class="vazio">Nenhum pedido por aqui. Mantenha esta página aberta para receber.</p>';
+          return;
+        }
+        el.innerHTML = lista
+          .map((p) => {
+            const hora = new Date(p.recebidoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+            const local =
+              p.tipo === "Entrega" && p.endereco
+                ? `<span><em>Endereço:</em> ${esc(p.endereco)}</span>`
+                : p.tipo === "estou-no-local" && p.mesa
+                  ? `<span><em>Mesa:</em> ${esc(p.mesa)}</span>`
+                  : "";
+            return `
+          <article class="pedido ${p.id === novoId ? "novo" : ""}">
+            <div class="pedido-topo">
+              <b>#${esc(String(p.id).slice(-4).toUpperCase())}</b>
+              <span class="hora">${hora}</span>
+            </div>
+            <div class="pedido-cli">${esc(p.nome)}</div>
+            <div class="info">
+              <span><em>Tipo:</em> ${esc(rotuloTipo[p.tipo] || p.tipo)}</span>
+              ${local}
+              <span><em>Pagamento:</em> ${esc(p.pagamento)}</span>
+            </div>
+            ${p.obs ? `<div class="obs">${esc(p.obs)}</div>` : ""}
+            <ul>${p.itens
+              .map(
+                (i) =>
+                  `<li><span>${esc(i.quantidade)}x ${esc(i.nome)}</span><span>${
+                    i.valor != null ? brl(i.valor * i.quantidade) : ""
+                  }</span></li>`,
+              )
+              .join("")}</ul>
+            <div class="pedido-rodape">
+              <span class="total">${brl(p.total)}</span>
+              <div class="pedido-acoes">
+                <button class="status ${p.status}" data-a="avancar" data-id="${esc(p.id)}" title="Avançar status">${rotulo[p.status]}</button>
+                <button class="mini" data-a="imprimir" data-id="${esc(p.id)}">Imprimir</button>
+                <button class="mini del" data-a="excluir" data-id="${esc(p.id)}">Excluir</button>
+              </div>
+            </div>
+          </article>`;
+          })
+          .join("");
+      }
+
+      function salvarPedidos() { salvarLocal(CHAVE_PEDIDOS, pedidos); }
+
+      function imprimirRecibo(p) {
+        const data = new Date(p.recebidoEm).toLocaleString("pt-BR");
+        const local =
+          p.tipo === "Entrega" && p.endereco
+            ? `<div>Endereço: ${esc(p.endereco)}</div>`
+            : p.tipo === "estou-no-local" && p.mesa
+              ? `<div>Mesa: ${esc(p.mesa)}</div>`
+              : "";
+        $("recibo").innerHTML = `
+          <h1>CADÁRPIO</h1>
+          <div class="c">Recibo do pedido #${esc(String(p.id).slice(-4).toUpperCase())}</div>
+          <div class="c">${esc(data)}</div>
+          <hr />
+          <div>Cliente: ${esc(p.nome)}</div>
+          <div>Tipo: ${esc(rotuloTipo[p.tipo] || p.tipo)}</div>
+          ${local}
+          <div>Pagamento: ${esc(p.pagamento)}</div>
+          <hr />
+          ${p.itens
+            .map(
+              (i) =>
+                `<div class="lin"><span>${esc(i.quantidade)}x ${esc(i.nome)}</span><span>${
+                  i.valor != null ? brl(i.valor * i.quantidade) : ""
+                }</span></div>`,
+            )
+            .join("")}
+          <hr />
+          <div class="lin tot"><span>TOTAL</span><span>${brl(p.total)}</span></div>
+          ${p.obs ? `<hr /><div>Obs: ${esc(p.obs)}</div>` : ""}
+          <hr />
+          <div class="c">Obrigado pela preferência!</div>`;
+        window.print();
+      }
+
+      $("listaPedidos").addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-a]");
+        if (!b) return;
+        const p = pedidos.find((x) => x.id === b.dataset.id);
+        if (!p) return;
+        if (b.dataset.a === "imprimir") return imprimirRecibo(p);
+        if (b.dataset.a === "excluir") {
+          if (!confirm(`Excluir o pedido de ${p.nome}?`)) return;
+          pedidos = pedidos.filter((x) => x !== p);
+        } else {
+          p.status = fluxo[(fluxo.indexOf(p.status) + 1) % fluxo.length];
+          notificarStatus(p);
+        }
+        salvarPedidos();
+        renderPedidos();
+        renderStats();
+      });
+
+      $("filtros").addEventListener("click", (e) => {
+        const c = e.target.closest("[data-f]");
+        if (!c) return;
+        filtro = c.dataset.f;
+        renderPedidos();
+      });
+
+      $("limparEntregues").addEventListener("click", () => {
+        const n = pedidos.filter((p) => p.status === "entregue").length;
+        if (!n) return aviso("Nenhum pedido entregue para limpar.");
+        if (!confirm(`Excluir ${n} pedido(s) entregue(s)?`)) return;
+        pedidos = pedidos.filter((p) => p.status !== "entregue");
+        salvarPedidos();
+        renderPedidos();
+        renderStats();
+      });
+
+      /* ---------- recebimento de pedidos (cardápio -> gestão) ---------- */
+      function receber(d) {
+        if (!d || typeof d !== "object" || typeof d.id !== "string" || !Array.isArray(d.itens)) return false;
+        if (pedidos.some((p) => p.id === d.id)) return true; // já recebido (BroadcastChannel + PeerJS)
+        const itens = d.itens.map((i) => ({
+          nome: String(i?.nome ?? ""),
+          quantidade: Number(i?.quantidade) || 1,
+          valor: Number.isFinite(i?.valor) ? i.valor : null,
+        }));
+        pedidos.push({
+          id: d.id,
+          nome: String(d.nome ?? "Cliente"),
+          tipo: String(d.tipo ?? ""),
+          mesa: String(d.mesa ?? ""),
+          endereco: String(d.endereco ?? ""),
+          pagamento: String(d.pagamento ?? ""),
+          obs: String(d.obs ?? ""),
+          total: Number.isFinite(d.total) ? d.total : 0,
+          itens,
+          status: "novo",
+          recebidoEm: Date.now(),
+        });
+        salvarPedidos();
+        renderPedidos(d.id);
+        renderStats();
+        aviso(`Novo pedido de ${d.nome ?? "cliente"}!`);
+        bip();
+        return true;
+      }
+
+      try {
+        new BroadcastChannel(CANAL_PAINEL).onmessage = (e) => receber(e.data);
+      } catch {}
+
+      /* ---------- acompanhamento do cliente (gestão -> cardápio) ---------- */
+      const CANAL_STATUS = "cardapio-status";
+      const acompanhantes = new Map(); // id do pedido -> conexões de clientes
+      let canalStatus = null;
+      try {
+        canalStatus = new BroadcastChannel(CANAL_STATUS);
+        // mesmo aparelho: o cardápio pergunta o status dos pedidos dele
+        canalStatus.onmessage = (e) => {
+          const d = e.data;
+          if (!d || d.acao !== "consultar" || !Array.isArray(d.ids)) return;
+          for (const id of d.ids) {
+            const p = pedidos.find((x) => x.id === id);
+            if (p) canalStatus.postMessage({ acao: "status", id, status: p.status });
+          }
+        };
+      } catch {}
+
+      function notificarStatus(p) {
+        try { canalStatus?.postMessage({ acao: "status", id: p.id, status: p.status }); } catch {}
+        for (const conn of acompanhantes.get(p.id) ?? []) {
+          try { if (conn.open) conn.send({ acao: "status", id: p.id, status: p.status }); } catch {}
+        }
+      }
+
+      let peer;
+      let tentativa;
+      function conexao(ok, texto) {
+        const el = $("conexao");
+        el.classList.toggle("on", ok);
+        el.textContent = texto;
+      }
+
+      function iniciarPeer() {
+        clearTimeout(tentativa);
+        try { peer?.destroy(); } catch {}
+        try {
+          peer = new Peer(PAINEL_ID);
+        } catch {
+          conexao(false, "Sem conexão");
+          return;
+        }
+        peer.on("open", () => conexao(true, "Recebendo pedidos"));
+        peer.on("connection", (conn) => {
+          conn.on("data", (d) => {
+            // cliente pedindo para acompanhar pedidos
+            if (d && d.acao === "acompanhar" && Array.isArray(d.ids)) {
+              for (const id of d.ids) {
+                if (typeof id !== "string") continue;
+                if (!acompanhantes.has(id)) acompanhantes.set(id, new Set());
+                acompanhantes.get(id).add(conn);
+                const p = pedidos.find((x) => x.id === id);
+                if (p) {
+                  try { conn.send({ acao: "status", id, status: p.status }); } catch {}
+                }
+              }
+              return;
+            }
+            const ok = receber(d);
+            try { conn.send({ ok }); } catch {}
+          });
+          conn.on("close", () => {
+            for (const set of acompanhantes.values()) set.delete(conn);
+          });
+        });
+        peer.on("disconnected", () => {
+          conexao(false, "Reconectando...");
+          try { peer.reconnect(); } catch {}
+        });
+        peer.on("error", (err) => {
+          conexao(false, err.type === "unavailable-id" ? "Gestão aberta em outra aba" : "Sem conexão");
+          tentativa = setTimeout(iniciarPeer, 8000);
+        });
+      }
+
+      /* ---------- produtos (API) ---------- */
+      function urlImagem(caminho) {
+        if (!caminho) return "";
+        try { return new URL(caminho, API_BASE + "/").href; } catch { return ""; }
+      }
+
+      async function api(caminho, opcoes) {
+        const r = await fetch(API_BASE + caminho, opcoes);
+        if (!r.ok) {
+          let msg = `Erro ${r.status}`;
+          try {
+            const j = await r.json();
+            if (typeof j.detail === "string") msg = j.detail;
+          } catch {}
+          throw new Error(msg);
+        }
+        return r.json();
+      }
+
+      async function carregarProdutos() {
+        produtosStatus = "Carregando produtos...";
+        renderProdutos();
+        try {
+          const [lanches, bebidas] = await Promise.all([api("/produtos"), api("/suco")]);
+          produtos = [
+            ...lanches.map((p) => ({ ...p, categoria: "lanche" })),
+            ...bebidas.map((p) => ({ ...p, categoria: "bebida" })),
+          ];
+          produtosStatus = "Nenhum produto cadastrado.";
+        } catch (erro) {
+          console.error(erro);
+          produtos = [];
+          produtosStatus = "Não foi possível carregar os produtos da API.";
+        }
+        renderProdutos();
+        renderStats();
+      }
+
+      function renderProdutos() {
+        const el = $("listaProdutos");
+        if (!produtos.length) {
+          el.innerHTML = `<tr><td colspan="5" class="vazio">${esc(produtosStatus)}</td></tr>`;
+          return;
+        }
+        el.innerHTML = produtos
+          .map(
+            (p) => `
+          <tr>
+            <td>${p.url_foto ? `<img src="${esc(urlImagem(p.url_foto))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'" />` : "<img alt='' style='visibility:hidden' />"}</td>
+            <td>${esc(p.nome)}<small>${esc(p.descricao)}</small></td>
+            <td><span class="tag ${p.categoria}">${p.categoria === "bebida" ? "Bebida" : "Lanche"}</span></td>
+            <td class="preco">${brl(p.valor)}</td>
+            <td><div class="acoes">
+              <button class="mini" data-a="editar" data-id="${p.id_produto}">Trocar</button>
+              <button class="mini del" data-a="excluir" data-id="${p.id_produto}">Excluir</button>
+            </div></td>
+          </tr>`,
+          )
+          .join("");
+      }
+
+      $("listaProdutos").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-a]");
+        if (!b) return;
+        const p = produtos.find((x) => x.id_produto === Number(b.dataset.id));
+        if (!p) return;
+        if (b.dataset.a === "editar") return abrirModal(p);
+        if (!confirm(`Excluir "${p.nome}" do cardápio?`)) return;
+        b.disabled = true;
+        try {
+          await api(`/produtos/${p.id_produto}`, { method: "DELETE" });
+          aviso("Produto excluído.");
+          await carregarProdutos();
+        } catch (erro) {
+          b.disabled = false;
+          aviso(`Não foi possível excluir: ${erro.message}`);
+        }
+      });
+
+      /* ---------- modal de produto ---------- */
+      const modal = $("modal");
+      let editando = null;
+      let fotoArquivo = null;
+
+      function abrirModal(p = null) {
+        editando = p;
+        fotoArquivo = null;
+        $("modalTitulo").textContent = p ? "Trocar produto" : "Novo produto";
+        $("fNome").value = p?.nome ?? "";
+        $("fDesc").value = p?.descricao ?? "";
+        $("fPreco").value = p?.valor ?? "";
+        $("fCat").value = p?.categoria ?? "lanche";
+        if (p?.url_foto?.startsWith("data:")) {
+          fotoArquivo = p.url_foto;
+          $("fFoto").value = "[arquivo] imagem atual";
+        } else {
+          $("fFoto").value = p?.url_foto ?? "";
+        }
+        $("fErro").hidden = true;
+        modal.showModal();
+        $("fNome").focus();
+      }
+
+      $("novoProduto").addEventListener("click", () => abrirModal());
+      $("fCancelar").addEventListener("click", () => modal.close());
+      $("fEscolher").addEventListener("click", () => $("fArquivo").click());
+
+      $("fArquivo").addEventListener("change", (e) => {
+        const arq = e.target.files[0];
+        if (!arq) return;
+        if (!arq.type.startsWith("image/")) return erroForm("Escolha um arquivo de imagem.");
+        if (arq.size > 3 * 1024 * 1024) return erroForm("Escolha uma imagem de até 3 MB.");
+        const leitor = new FileReader();
+        leitor.onload = () => {
+          fotoArquivo = leitor.result;
+          $("fFoto").value = `[arquivo] ${arq.name}`;
+          $("fErro").hidden = true;
+        };
+        leitor.readAsDataURL(arq);
+        e.target.value = "";
+      });
+
+      function erroForm(t) {
+        $("fErro").textContent = t;
+        $("fErro").hidden = false;
+      }
+
+      $("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = $("fNome").value.trim();
+        const valor = parseFloat(String($("fPreco").value).replace(",", "."));
+        if (!nome) return erroForm("Informe o nome do produto.");
+        if (!Number.isFinite(valor) || valor <= 0) return erroForm("Informe um preço maior que zero.");
+        let foto = $("fFoto").value.trim();
+        if (foto.startsWith("[arquivo]") && fotoArquivo) foto = fotoArquivo;
+
+        const corpo = JSON.stringify({
+          nome,
+          descricao: $("fDesc").value.trim(),
+          valor,
+          url_foto: foto,
+          categoria: $("fCat").value,
+        });
+        const cab = { "Content-Type": "application/json" };
+
+        $("fSalvar").disabled = true;
+        try {
+          if (editando) await api(`/produtos/${editando.id_produto}`, { method: "PUT", headers: cab, body: corpo });
+          else await api("/produtos", { method: "POST", headers: cab, body: corpo });
+          modal.close();
+          aviso(editando ? "Produto atualizado." : "Produto adicionado.");
+          await carregarProdutos();
+        } catch (erro) {
+          erroForm(`Não foi possível salvar: ${erro.message}`);
+        } finally {
+          $("fSalvar").disabled = false;
+        }
+      });
+
+      /* ---------- abas e início ---------- */
+      document.querySelectorAll(".aba").forEach((a) =>
+        a.addEventListener("click", () => {
+          document.querySelectorAll(".aba").forEach((x) => x.classList.remove("ativa"));
+          document.querySelectorAll(".painel").forEach((x) => x.classList.remove("ativo"));
+          a.classList.add("ativa");
+          $(a.dataset.aba).classList.add("ativo");
+        }),
+      );
+
+      $("data").textContent = new Date().toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      });
+
+      renderPedidos();
+      renderStats();
+      iniciarPeer();
+      carregarProdutos();
+    </script>
+  </body>
+</html>

@@ -19,6 +19,7 @@
         --laranja: #ff6a13;
         --mostarda: #ffc233;
         --ketchup: #d62828;
+        --verde: #2f9e44;
         --sombra: 6px 6px 0 var(--tinta);
         --display: "Anton", "Impact", "Arial Narrow", sans-serif;
         --texto: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
@@ -103,7 +104,8 @@
         border-color: var(--laranja);
         color: var(--papel-claro);
       }
-      #quantidade-carrinho {
+      #quantidade-carrinho,
+      #qtd-acompanhar {
         display: inline-block;
         min-width: 1.6em;
         padding: 0 6px;
@@ -119,6 +121,38 @@
       @keyframes pulo {
         40% {
           transform: scale(1.5) rotate(-8deg);
+        }
+      }
+
+      /* menu "Acompanhar pedido" (aparece depois que o pedido é feito) */
+      .carrinho li.item-acompanhar {
+        order: 2;
+        margin-left: auto;
+      }
+      .carrinho ul:has(.item-acompanhar:not([hidden])) li:first-child {
+        margin-left: 0;
+      }
+      .carrinho #abrir-acompanhar {
+        background: var(--ketchup);
+        color: var(--papel-claro);
+        border-color: var(--ketchup);
+      }
+      .carrinho #abrir-acompanhar:hover {
+        background: var(--laranja);
+        border-color: var(--laranja);
+        transform: translateY(-2px);
+      }
+      .carrinho #abrir-acompanhar.tem-pronto {
+        background: var(--verde);
+        border-color: var(--verde);
+        animation: pisca-menu 1.2s ease-in-out infinite;
+      }
+      .carrinho #abrir-acompanhar.destaque {
+        animation: pulo 0.5s ease 3;
+      }
+      @keyframes pisca-menu {
+        50% {
+          transform: scale(1.07);
         }
       }
 
@@ -359,7 +393,7 @@
         outline-offset: 3px;
       }
 
-      /* ---------- comanda (carrinho) ---------- */
+      /* ---------- comanda (carrinho) e acompanhamento ---------- */
       body.comanda-aberta > .faixa,
       body.comanda-aberta > .hero,
       body.comanda-aberta > .tema,
@@ -567,6 +601,211 @@
         box-shadow: 3px 3px 0 var(--tinta);
       }
 
+      /* ---------- acompanhar pedido ---------- */
+      .painel-acompanhar {
+        max-width: 520px;
+        margin: 56px auto 80px;
+        padding: 0 20px;
+        display: grid;
+        gap: 26px;
+        scroll-margin-top: 90px;
+      }
+      .acomp-topo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .acomp-topo h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 38px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: linear-gradient(transparent 62%, var(--mostarda) 62%);
+        padding: 0 6px;
+      }
+      .btn-fechar {
+        font-family: var(--texto);
+        font-weight: 800;
+        font-size: 14px;
+        padding: 10px 16px;
+        cursor: pointer;
+        color: var(--papel-claro);
+        background: var(--ketchup);
+        border: 2.5px solid var(--tinta);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--tinta);
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+      .btn-fechar:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 5px 5px 0 var(--tinta);
+      }
+      .acomp-conexao {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .acomp-conexao::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 8px;
+        border-radius: 50%;
+        border: 2px solid var(--tinta);
+        background: var(--ketchup);
+      }
+      .acomp-conexao.on::before {
+        background: var(--verde);
+      }
+      .lista-acomp {
+        display: grid;
+        gap: 30px;
+      }
+      .cartao-acomp {
+        display: grid;
+        gap: 16px;
+        padding: 22px 22px 24px;
+        background: var(--papel-claro);
+        border: 3px solid var(--tinta);
+        border-radius: 6px;
+        box-shadow: var(--sombra);
+        font-family: var(--mono);
+      }
+      .acomp-cab {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 3px dashed var(--tinta);
+      }
+      .acomp-cab b {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 28px;
+        letter-spacing: 0.06em;
+      }
+      .acomp-hora {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .banner-acomp {
+        display: grid;
+        gap: 4px;
+        text-align: center;
+        padding: 14px 12px;
+        border: 3px solid var(--tinta);
+        background: var(--mostarda);
+      }
+      .banner-acomp strong {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 28px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        line-height: 1.1;
+      }
+      .banner-acomp span {
+        font-size: 13px;
+      }
+      .banner-acomp.pronto {
+        background: var(--verde);
+        color: var(--papel-claro);
+        animation: pisca-menu 1.4s ease-in-out infinite;
+      }
+      .banner-acomp.entregue {
+        background: var(--tinta);
+        color: var(--mostarda);
+      }
+      .passos {
+        display: flex;
+        list-style: none;
+        margin: 4px 0;
+      }
+      .passo {
+        position: relative;
+        flex: 1;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .passo::before {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -50%;
+        width: 100%;
+        height: 4px;
+        background: rgba(27, 20, 16, 0.25);
+      }
+      .passo:first-child::before {
+        display: none;
+      }
+      .passo i {
+        position: relative;
+        z-index: 1;
+        display: block;
+        width: 28px;
+        height: 28px;
+        margin: 0 auto 6px;
+        border: 3px solid var(--tinta);
+        border-radius: 50%;
+        background: var(--papel);
+      }
+      .passo.feito::before {
+        background: var(--laranja);
+      }
+      .passo.feito i {
+        background: var(--laranja);
+      }
+      .passo.atual i {
+        background: var(--mostarda);
+        animation: pisca-menu 1.2s ease-in-out infinite;
+      }
+      .acomp-itens {
+        list-style: none;
+        display: grid;
+        gap: 4px;
+        padding: 10px 0;
+        border-top: 2px dashed var(--tinta);
+        border-bottom: 2px dashed var(--tinta);
+        font-size: 13px;
+      }
+      .acomp-rodape {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 700;
+      }
+      .acomp-rodape .total {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 24px;
+        letter-spacing: 0.04em;
+      }
+      .btn-remover {
+        font-family: var(--texto);
+        font-weight: 800;
+        font-size: 12px;
+        padding: 6px 12px;
+        cursor: pointer;
+        background: var(--papel);
+        border: 2px solid var(--tinta);
+        border-radius: 999px;
+      }
+      .btn-remover:hover {
+        background: var(--mostarda);
+      }
+
       /* ---------- detalhes ---------- */
       #detalhes-produto {
         margin: auto;
@@ -722,6 +961,9 @@
           margin-inline: 12px;
           padding: 24px 18px 30px;
         }
+        .painel-acompanhar {
+          padding: 0 12px;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         *,
@@ -772,6 +1014,11 @@
           </li>
           <li>
             <a href="#bebida">Bebida</a>
+          </li>
+          <li class="item-acompanhar" id="item-acompanhar" hidden>
+            <a href="#acompanhar" id="abrir-acompanhar" aria-expanded="false"
+              >Acompanhar pedido <span id="qtd-acompanhar">0</span></a
+            >
           </li>
         </ul>
       </div>
@@ -872,6 +1119,19 @@
 
       <button type="button" id="finalizar">Finalizar pedido</button>
     </section>
+
+    <!-- acompanhar pedido -->
+    <section class="painel-acompanhar" id="acompanhar" hidden>
+      <div class="acomp-topo">
+        <h3>Meus pedidos</h3>
+        <button type="button" class="btn-fechar" id="fechar-acompanhar">
+          Fechar
+        </button>
+      </div>
+      <p class="acomp-conexao" id="acomp-conexao" role="status" hidden></p>
+      <div class="lista-acomp" id="lista-acompanhar"></div>
+    </section>
+
     <div id="aviso" class="aviso" role="alert" hidden></div>
     <dialog id="detalhes-produto">
       <h3 id="detalhes-nome"></h3>
@@ -901,6 +1161,12 @@
       const produtosCarrinho = new Map();
       const linkCarrinho = document.getElementById("abrir-carrinho");
       const painelCarrinho = document.getElementById("carrinho");
+      const itemAcompanhar = document.getElementById("item-acompanhar");
+      const linkAcompanhar = document.getElementById("abrir-acompanhar");
+      const qtdAcompanhar = document.getElementById("qtd-acompanhar");
+      const painelAcompanhar = document.getElementById("acompanhar");
+      const listaAcompanhar = document.getElementById("lista-acompanhar");
+      const textoConexaoAcomp = document.getElementById("acomp-conexao");
       const listaProdutos = document.getElementById("lista-produtos");
       const statusLanches = document.getElementById("status-lanches");
       const listaBebidas = document.getElementById("lista-bebidas");
@@ -928,12 +1194,14 @@
       // formato: 55 + DDD + número (usado só no link do rodapé)
       const WHATSAPP = "5598988602161";
 
-      // Precisa ser IGUAL ao PAINEL_ID do painel.html
+      // Precisa ser IGUAL ao PAINEL_ID do gestao.html
       const PAINEL_ID = "cardapio-painel-7f3k";
       const CANAL_PAINEL = "cardapio-pedidos";
+      const CANAL_STATUS = "cardapio-status";
 
       const CHAVE_CARRINHO = "cardapio:carrinho";
       const CHAVE_PEDIDO = "cardapio:pedido";
+      const CHAVE_ACOMPANHAR = "cardapio:acompanhar";
 
       const formatarPreco = (valor) =>
         valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -1048,10 +1316,20 @@
         );
       }
 
+      // qual: "carrinho", "acompanhar" ou null (tudo fechado)
+      function mostrarPainel(qual) {
+        painelCarrinho.hidden = qual !== "carrinho";
+        painelAcompanhar.hidden = qual !== "acompanhar";
+        document.body.classList.toggle("comanda-aberta", qual !== null);
+        linkCarrinho.setAttribute("aria-expanded", String(qual === "carrinho"));
+        linkAcompanhar.setAttribute(
+          "aria-expanded",
+          String(qual === "acompanhar"),
+        );
+      }
+
       function definirCarrinhoAberto(aberto) {
-        painelCarrinho.hidden = !aberto;
-        document.body.classList.toggle("comanda-aberta", aberto);
-        linkCarrinho.setAttribute("aria-expanded", String(aberto));
+        mostrarPainel(aberto ? "carrinho" : null);
       }
 
       function criarBotaoQuantidade(texto, acao, id, rotulo) {
@@ -1296,7 +1574,7 @@
           '.carrinho a[href="#lanche"], .carrinho a[href="#bebida"]',
         )
         .forEach((link) => {
-          link.addEventListener("click", () => definirCarrinhoAberto(false));
+          link.addEventListener("click", () => mostrarPainel(null));
         });
 
       function tratarCliqueProduto(evento) {
@@ -1469,15 +1747,369 @@
           );
           return;
         } else {
+          registrarAcompanhamento(pedido);
           produtosCarrinho.clear();
           atualizarCarrinho();
           definirCarrinhoAberto(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
-          mostrarAviso("Pedido enviado! Obrigado, já estamos preparando.");
+          mostrarAviso(
+            "Pedido enviado! Veja se já está pronto em “Acompanhar pedido”, no menu.",
+          );
         }
       }
 
       botaoFinalizar.addEventListener("click", comprar);
+
+      /* ---------- acompanhar pedido ---------- */
+      const ETAPAS = ["novo", "preparo", "pronto", "entregue"];
+      const ROTULO_ETAPA = {
+        novo: "Recebido",
+        preparo: "Preparo",
+        pronto: "Pronto",
+        entregue: "Entregue",
+      };
+      const VINTE_QUATRO_HORAS = 24 * 60 * 60 * 1000;
+
+      const idCurto = (id) => String(id).slice(-4).toUpperCase();
+
+      function elemento(tag, classe, texto) {
+        const el = document.createElement(tag);
+        if (classe) {
+          el.className = classe;
+        }
+        if (texto !== undefined) {
+          el.textContent = texto;
+        }
+        return el;
+      }
+
+      function restaurarAcompanhados() {
+        const salvo = lerLocal(CHAVE_ACOMPANHAR);
+        if (!Array.isArray(salvo)) {
+          return [];
+        }
+        const limite = Date.now() - VINTE_QUATRO_HORAS;
+        return salvo
+          .filter(
+            (p) =>
+              p &&
+              typeof p.id === "string" &&
+              ETAPAS.includes(p.status) &&
+              Number.isFinite(p.hora) &&
+              p.hora > limite &&
+              Array.isArray(p.itens),
+          )
+          .map((p) => ({
+            id: p.id,
+            nome: String(p.nome ?? ""),
+            tipo: String(p.tipo ?? ""),
+            total: valorValido(p.total) ? p.total : 0,
+            hora: p.hora,
+            status: p.status,
+            itens: p.itens.map((i) => ({
+              nome: String(i?.nome ?? ""),
+              quantidade: Number(i?.quantidade) || 1,
+            })),
+          }))
+          .slice(0, 10);
+      }
+
+      let acompanhados = restaurarAcompanhados();
+
+      const salvarAcompanhados = () =>
+        salvarLocal(CHAVE_ACOMPANHAR, acompanhados);
+
+      const idsPendentes = () =>
+        acompanhados.filter((p) => p.status !== "entregue").map((p) => p.id);
+
+      function descreverStatus(p) {
+        switch (p.status) {
+          case "novo":
+            return {
+              titulo: "Ainda não está pronto",
+              detalhe: "Pedido recebido. Logo começamos a preparar.",
+              classe: "aguarda",
+            };
+          case "preparo":
+            return {
+              titulo: "Ainda não está pronto",
+              detalhe: "Estamos preparando o seu pedido agora.",
+              classe: "aguarda",
+            };
+          case "pronto":
+            return {
+              titulo: "Pronto!",
+              detalhe:
+                p.tipo === "Entrega"
+                  ? "Seu pedido está pronto e vai sair para entrega."
+                  : p.tipo === "estou-no-local"
+                    ? "Seu pedido está pronto e já vai para a sua mesa."
+                    : "Seu pedido está pronto. Pode vir retirar.",
+              classe: "pronto",
+            };
+          default:
+            return {
+              titulo: "Entregue",
+              detalhe: "Bom apetite!",
+              classe: "entregue",
+            };
+        }
+      }
+
+      function renderAcompanhar() {
+        const pendentes = idsPendentes().length;
+        itemAcompanhar.hidden = acompanhados.length === 0;
+        qtdAcompanhar.textContent = pendentes;
+        qtdAcompanhar.hidden = pendentes === 0;
+        linkAcompanhar.classList.toggle(
+          "tem-pronto",
+          acompanhados.some((p) => p.status === "pronto"),
+        );
+
+        if (acompanhados.length === 0 && !painelAcompanhar.hidden) {
+          mostrarPainel(null);
+        }
+
+        listaAcompanhar.replaceChildren();
+        for (const p of acompanhados) {
+          const info = descreverStatus(p);
+          const atual = ETAPAS.indexOf(p.status);
+
+          const cartao = elemento("article", "cartao-acomp");
+
+          const cab = elemento("div", "acomp-cab");
+          cab.append(
+            elemento("b", "", `Pedido #${idCurto(p.id)}`),
+            elemento(
+              "span",
+              "acomp-hora",
+              new Date(p.hora).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            ),
+          );
+
+          const banner = elemento("div", `banner-acomp ${info.classe}`);
+          banner.append(
+            elemento("strong", "", info.titulo),
+            elemento("span", "", info.detalhe),
+          );
+
+          const passos = elemento("ol", "passos");
+          ETAPAS.forEach((etapa, indice) => {
+            const passo = elemento("li", "passo");
+            if (indice <= atual) {
+              passo.classList.add("feito");
+            }
+            if (indice === atual && p.status !== "entregue") {
+              passo.classList.add("atual");
+              passo.setAttribute("aria-current", "step");
+            }
+            passo.append(elemento("i"), elemento("span", "", ROTULO_ETAPA[etapa]));
+            passos.append(passo);
+          });
+
+          const itens = elemento("ul", "acomp-itens");
+          for (const item of p.itens) {
+            itens.append(elemento("li", "", `${item.quantidade}x ${item.nome}`));
+          }
+
+          const rodape = elemento("div", "acomp-rodape");
+          rodape.append(elemento("span", "total", formatarPreco(p.total)));
+          if (p.status === "entregue") {
+            const remover = elemento("button", "btn-remover", "Remover da lista");
+            remover.type = "button";
+            remover.dataset.remover = p.id;
+            rodape.append(remover);
+          }
+
+          cartao.append(cab, banner, passos, itens, rodape);
+          listaAcompanhar.append(cartao);
+        }
+      }
+
+      listaAcompanhar.addEventListener("click", (evento) => {
+        const botao = evento.target.closest("button[data-remover]");
+        if (!botao) {
+          return;
+        }
+        acompanhados = acompanhados.filter((p) => p.id !== botao.dataset.remover);
+        salvarAcompanhados();
+        renderAcompanhar();
+      });
+
+      function atualizarStatus(id, status) {
+        const pedido = acompanhados.find((p) => p.id === id);
+        if (!pedido || !ETAPAS.includes(status) || pedido.status === status) {
+          return;
+        }
+        pedido.status = status;
+        salvarAcompanhados();
+        renderAcompanhar();
+
+        if (status === "pronto") {
+          mostrarAviso(`Seu pedido #${idCurto(id)} está pronto!`);
+          try {
+            navigator.vibrate?.([200, 100, 200]);
+          } catch {}
+        } else if (status === "preparo") {
+          mostrarAviso(`Seu pedido #${idCurto(id)} entrou em preparo.`);
+        }
+
+        if (idsPendentes().length === 0) {
+          fecharAcompanhamento();
+        }
+      }
+
+      function registrarAcompanhamento(pedido) {
+        acompanhados.unshift({
+          id: pedido.id,
+          nome: pedido.nome,
+          tipo: pedido.tipo,
+          total: pedido.total,
+          hora: Date.now(),
+          status: "novo",
+          itens: pedido.itens.map(({ nome, quantidade }) => ({
+            nome,
+            quantidade,
+          })),
+        });
+        acompanhados = acompanhados.slice(0, 10);
+        salvarAcompanhados();
+        renderAcompanhar();
+
+        linkAcompanhar.classList.remove("destaque");
+        void linkAcompanhar.offsetWidth;
+        linkAcompanhar.classList.add("destaque");
+
+        conectarAcompanhamento();
+      }
+
+      linkAcompanhar.addEventListener("click", (evento) => {
+        evento.preventDefault();
+        if (!painelAcompanhar.hidden) {
+          mostrarPainel(null);
+          return;
+        }
+        mostrarPainel("acompanhar");
+        conectarAcompanhamento();
+        painelAcompanhar.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      document
+        .getElementById("fechar-acompanhar")
+        .addEventListener("click", () => {
+          mostrarPainel(null);
+          linkAcompanhar.focus();
+        });
+
+      /* status em tempo real: a Gestão avisa quando o pedido muda */
+      let canalStatus = null;
+      try {
+        canalStatus = new BroadcastChannel(CANAL_STATUS);
+        canalStatus.onmessage = (evento) => {
+          const d = evento.data;
+          if (d && d.acao === "status") {
+            atualizarStatus(d.id, d.status);
+          }
+        };
+      } catch {
+        /* sem BroadcastChannel: segue só com PeerJS */
+      }
+
+      let peerAcompanhar = null;
+      let conexaoAcompanhar = null;
+      let temporizadorAcompanhar;
+
+      function definirConexaoAcompanhar(ok) {
+        const pendentes = idsPendentes().length > 0;
+        textoConexaoAcomp.hidden = !pendentes;
+        textoConexaoAcomp.classList.toggle("on", ok);
+        textoConexaoAcomp.textContent = ok
+          ? "Atualizando em tempo real"
+          : "Reconectando ao estabelecimento...";
+      }
+
+      function consultarStatus() {
+        const ids = idsPendentes();
+        if (ids.length === 0) {
+          return;
+        }
+        try {
+          canalStatus?.postMessage({ acao: "consultar", ids });
+        } catch {}
+        if (conexaoAcompanhar && conexaoAcompanhar.open) {
+          try {
+            conexaoAcompanhar.send({ acao: "acompanhar", ids });
+          } catch {}
+        }
+      }
+
+      function fecharAcompanhamento() {
+        clearTimeout(temporizadorAcompanhar);
+        const peer = peerAcompanhar;
+        peerAcompanhar = null;
+        conexaoAcompanhar = null;
+        try {
+          peer?.destroy();
+        } catch {}
+        definirConexaoAcompanhar(false);
+      }
+
+      function conectarAcompanhamento() {
+        clearTimeout(temporizadorAcompanhar);
+        if (idsPendentes().length === 0) {
+          fecharAcompanhamento();
+          return;
+        }
+        if (conexaoAcompanhar && conexaoAcompanhar.open) {
+          consultarStatus();
+          return;
+        }
+
+        fecharAcompanhamento();
+        consultarStatus(); // mesmo aparelho: já pergunta pelo BroadcastChannel
+
+        let peer;
+        const falhou = () => {
+          if (peer !== peerAcompanhar) {
+            return; // tentativa antiga, já substituída
+          }
+          definirConexaoAcompanhar(false);
+          clearTimeout(temporizadorAcompanhar);
+          temporizadorAcompanhar = setTimeout(conectarAcompanhamento, 8000);
+        };
+
+        try {
+          peer = new Peer();
+          peerAcompanhar = peer;
+          peer.on("error", falhou);
+          peer.on("open", () => {
+            const conn = peer.connect(PAINEL_ID, { reliable: true });
+            conexaoAcompanhar = conn;
+            conn.on("open", () => {
+              definirConexaoAcompanhar(true);
+              consultarStatus();
+            });
+            conn.on("data", (d) => {
+              if (d && d.acao === "status") {
+                atualizarStatus(d.id, d.status);
+              }
+            });
+            conn.on("close", falhou);
+            conn.on("error", falhou);
+          });
+        } catch {
+          falhou();
+        }
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          conectarAcompanhamento();
+        }
+      });
 
       /* ---------- API ---------- */
       function carregarProdutos(
@@ -1523,6 +2155,8 @@
       restaurarCarrinho();
       atualizarCarrinho();
       restaurarPedido();
+      renderAcompanhar();
+      conectarAcompanhamento();
 
       carregarProdutos(
         `${API_BASE}/produtos`,

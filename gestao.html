@@ -308,6 +308,15 @@
       .pedido li { display: flex; justify-content: space-between; gap: 10px; }
       .pedido-rodape { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
       .total { font-family: var(--display); font-size: 1.5rem; }
+      .salvo {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--verde);
+        display: block;
+        letter-spacing: 0.5px;
+      }
       .pedido-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
       .status {
         font-family: var(--mono);
@@ -652,6 +661,7 @@
       const PAINEL_ID = "cardapio-painel-7f3k";
       const CANAL_PAINEL = "cardapio-pedidos";
       const CHAVE_PEDIDOS = "gestao:pedidos";
+      const CHAVE_VENDAS = "gestao:vendas";
 
       const $ = (id) => document.getElementById(id);
       const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -664,9 +674,18 @@
       const salvarLocal = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
       let pedidos = lerLocal(CHAVE_PEDIDOS, []);
+      let vendas = lerLocal(CHAVE_VENDAS, []); // total salvo de cada pedido entregue (permanece mesmo se o pedido for excluído)
       let produtos = [];
       let filtro = "todos";
       let produtosStatus = "Carregando produtos...";
+
+      // migração: pedidos que já estavam como "entregue" antes desta versão passam a ter o total salvo
+      pedidos.forEach((p) => {
+        if (p.status === "entregue" && !vendas.some((v) => v.id === p.id)) {
+          vendas.push(montarVenda(p, p.recebidoEm));
+        }
+      });
+      salvarLocal(CHAVE_VENDAS, vendas);
 
       const fluxo = ["novo", "preparo", "pronto", "entregue"];
       const rotulo = { novo: "Novo", preparo: "Em preparo", pronto: "Pronto", entregue: "Entregue" };
@@ -678,6 +697,39 @@
       };
 
       const modalFat = $("modalFat");
+
+      /* ---------- vendas (total salvo ao entregar) ---------- */
+      function montarVenda(p, quando) {
+        return {
+          id: p.id,
+          nome: p.nome,
+          tipo: p.tipo,
+          pagamento: p.pagamento,
+          obs: p.obs,
+          itens: p.itens.map((i) => ({ ...i })),
+          total: p.total,
+          entregueEm: quando,
+        };
+      }
+
+      function salvarVendas() { salvarLocal(CHAVE_VENDAS, vendas); }
+
+      function registrarVenda(p) {
+        if (vendas.some((v) => v.id === p.id)) return;
+        vendas.push(montarVenda(p, Date.now()));
+        salvarVendas();
+      }
+
+      function removerVenda(id) {
+        const antes = vendas.length;
+        vendas = vendas.filter((v) => v.id !== id);
+        if (vendas.length !== antes) salvarVendas();
+      }
+
+      // vendas no mesmo formato dos pedidos, usando a data da entrega como referência
+      function vendasComoPedidos() {
+        return vendas.map((v) => ({ ...v, status: "entregue", recebidoEm: v.entregueEm }));
+      }
 
       /* ---------- aviso ---------- */
       let tAviso;
@@ -709,8 +761,9 @@
       function renderStats() {
         const hoje = pedidos.filter((p) => ehHoje(p.recebidoEm));
         const abertos = pedidos.filter((p) => p.status !== "entregue").length;
+        const fatHoje = vendas.filter((v) => ehHoje(v.entregueEm)).reduce((s, v) => s + v.total, 0);
         $("sPedidos").textContent = hoje.length;
-        $("sFat").textContent = brl(hoje.reduce((s, p) => s + p.total, 0));
+        $("sFat").textContent = brl(fatHoje);
         $("sAberto").textContent = abertos;
         $("nAberto").textContent = abertos;
         $("sProd").textContent = produtos.length;
@@ -747,6 +800,7 @@
                 : p.tipo === "estou-no-local" && p.mesa
                   ? `<span><em>Mesa:</em> ${esc(p.mesa)}</span>`
                   : "";
+            const salvo = p.status === "entregue" && vendas.some((v) => v.id === p.id);
             return `
           <article class="pedido ${p.id === novoId ? "novo" : ""}">
             <div class="pedido-topo">
@@ -769,7 +823,7 @@
               )
               .join("")}</ul>
             <div class="pedido-rodape">
-              <span class="total">${brl(p.total)}</span>
+              <span class="total">${brl(p.total)}${salvo ? '<span class="salvo">✓ Valor salvo</span>' : ""}</span>
               <div class="pedido-acoes">
                 <button class="status ${p.status}" data-a="avancar" data-id="${esc(p.id)}" title="Avançar status">${rotulo[p.status]}</button>
                 <button class="mini" data-a="imprimir" data-id="${esc(p.id)}">Imprimir</button>
@@ -824,11 +878,22 @@
         if (!p) return;
         if (b.dataset.a === "imprimir") return imprimirRecibo(p);
         if (b.dataset.a === "excluir") {
-          if (!confirm(`Excluir o pedido de ${p.nome}?`)) return;
+          const salvo = vendas.some((v) => v.id === p.id);
+          const extra = salvo ? "\nO valor já salvo no faturamento será mantido." : "";
+          if (!confirm(`Excluir o pedido de ${p.nome}?${extra}`)) return;
           pedidos = pedidos.filter((x) => x !== p);
         } else {
+          const anterior = p.status;
           p.status = fluxo[(fluxo.indexOf(p.status) + 1) % fluxo.length];
+          if (p.status === "entregue") {
+            registrarVenda(p);
+            aviso(`Pedido entregue. Total de ${brl(p.total)} salvo no faturamento.`);
+          } else if (anterior === "entregue") {
+            // voltou para o início do fluxo: o valor deixa de contar como venda concluída
+            removerVenda(p.id);
+          }
           notificarStatus(p);
+          if (p.status === "pronto") aviso(`Cliente ${p.nome} notificado: pedido pronto!`);
         }
         salvarPedidos();
         renderPedidos();
@@ -845,7 +910,7 @@
       $("limparEntregues").addEventListener("click", () => {
         const n = pedidos.filter((p) => p.status === "entregue").length;
         if (!n) return aviso("Nenhum pedido entregue para limpar.");
-        if (!confirm(`Excluir ${n} pedido(s) entregue(s)?`)) return;
+        if (!confirm(`Excluir ${n} pedido(s) entregue(s)?\nOs valores já salvos no faturamento serão mantidos.`)) return;
         pedidos = pedidos.filter((p) => p.status !== "entregue");
         salvarPedidos();
         renderPedidos();
@@ -959,8 +1024,11 @@
 
       function renderFat() {
         const { n, ini, fim, iniAnt } = janelaFat();
-        const atual = pedidos.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim);
-        const ant = pedidos.filter((p) => p.recebidoEm >= iniAnt && p.recebidoEm < ini);
+        // faturamento = totais salvos dos pedidos entregues, pela data da entrega
+        const base = vendasComoPedidos();
+        const atual = base.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim);
+        const ant = base.filter((p) => p.recebidoEm >= iniAnt && p.recebidoEm < ini);
+        const recebidosPeriodo = pedidos.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim);
         const soma = (l) => l.reduce((s, p) => s + p.total, 0);
         const fat = soma(atual), fatAnt = soma(ant);
         const ticket = atual.length ? fat / atual.length : 0;
@@ -1001,7 +1069,7 @@
           .sort((a, b) => b.valor - a.valor)
           .slice(0, 6);
         const status = fluxo
-          .map((s) => ({ nome: rotulo[s], valor: atual.filter((p) => p.status === s).length }))
+          .map((s) => ({ nome: rotulo[s], valor: recebidosPeriodo.filter((p) => p.status === s).length }))
           .map((s) => ({ ...s, texto: `${s.valor} pedido(s)` }));
 
         const periodoTxt =
@@ -1009,7 +1077,7 @@
             ? new Date(ini).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
             : `${fmtData(ini)} a ${fmtData(fim - 1)}`;
 
-        const vazio = '<p class="sem-dados">Sem pedidos neste período.</p>';
+        const vazio = '<p class="sem-dados">Sem pedidos entregues neste período.</p>';
 
         $("fatCorpo").innerHTML = `
           <div class="fat-topo">
@@ -1028,7 +1096,7 @@
 
           <div class="kpis">
             <div class="kpi destaque"><small>Faturamento</small><strong>${brl(fat)}</strong><div class="sub">${delta(fat, fatAnt)} ${vsTxt}</div></div>
-            <div class="kpi"><small>Pedidos</small><strong>${atual.length}</strong><div class="sub">${delta(atual.length, ant.length)} ${vsTxt}</div></div>
+            <div class="kpi"><small>Pedidos entregues</small><strong>${atual.length}</strong><div class="sub">${delta(atual.length, ant.length)} ${vsTxt}</div></div>
             <div class="kpi"><small>Ticket médio</small><strong>${brl(ticket)}</strong><div class="sub">${delta(ticket, ticketAnt)} ${vsTxt}</div></div>
             <div class="kpi"><small>Maior pedido</small><strong>${brl(maior)}</strong><div class="sub">${qtdItens} item(ns) vendidos</div></div>
             <div class="kpi"><small>${n === 1 ? "Horário de pico" : "Melhor dia"}</small><strong>${iPico >= 0 ? esc(labels[iPico]) : "—"}</strong><div class="sub">${iPico >= 0 ? `${brl(maxVal)} · ${qts[iPico]} pedido(s)` : "sem vendas"}</div></div>
@@ -1037,7 +1105,7 @@
           <div class="graficos">
             <div class="grafico largo">
               <h4>Faturamento por ${n === 1 ? "hora" : "dia"}</h4>
-              <p class="leg">Barra vermelha = ${n === 1 ? "hora" : "dia"} de maior faturamento. Passe o mouse para ver detalhes.</p>
+              <p class="leg">Barra vermelha = ${n === 1 ? "hora" : "dia"} de maior faturamento (pela hora da entrega). Passe o mouse para ver detalhes.</p>
               ${graficoBarras(labels, vals, qts, n === 1 ? "hora" : "dia")}
             </div>
             <div class="grafico">
@@ -1057,18 +1125,20 @@
             </div>
             <div class="grafico">
               <h4>Pedidos por status</h4>
-              <p class="leg">Situação atual dos pedidos do período</p>
-              ${atual.length ? barrasH(status, "#2f9e44") : vazio}
+              <p class="leg">Pedidos recebidos no período que ainda estão na lista</p>
+              ${recebidosPeriodo.length ? barrasH(status, "#2f9e44") : '<p class="sem-dados">Sem pedidos neste período.</p>'}
             </div>
           </div>`;
       }
 
       function exportarCsv() {
         const { ini, fim } = janelaFat();
-        const lista = pedidos.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim).sort((a, b) => a.recebidoEm - b.recebidoEm);
-        if (!lista.length) return aviso("Sem pedidos no período para exportar.");
+        const lista = vendasComoPedidos()
+          .filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim)
+          .sort((a, b) => a.recebidoEm - b.recebidoEm);
+        if (!lista.length) return aviso("Sem pedidos entregues no período para exportar.");
         const cel = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-        const linhas = [["Pedido", "Data", "Cliente", "Tipo", "Pagamento", "Status", "Itens", "Total"].map(cel).join(";")];
+        const linhas = [["Pedido", "Entregue em", "Cliente", "Tipo", "Pagamento", "Itens", "Total"].map(cel).join(";")];
         lista.forEach((p) =>
           linhas.push(
             [
@@ -1077,7 +1147,6 @@
               p.nome,
               rotuloTipo[p.tipo] || p.tipo,
               p.pagamento,
-              rotulo[p.status],
               p.itens.map((i) => `${i.quantidade}x ${i.nome}`).join(" + "),
               p.total.toFixed(2).replace(".", ","),
             ]
@@ -1141,7 +1210,7 @@
         new BroadcastChannel(CANAL_PAINEL).onmessage = (e) => receber(e.data);
       } catch {}
 
-      /* ---------- acompanhamento do cliente (gestão -> cardápio) ---------- */
+      /* ---------- acompanhamento e notificação ao cliente (gestão -> cardápio) ---------- */
       const CANAL_STATUS = "cardapio-status";
       const acompanhantes = new Map(); // id do pedido -> conexões de clientes
       let canalStatus = null;
@@ -1158,10 +1227,28 @@
         };
       } catch {}
 
+      // mensagens enviadas ao cliente quando o status muda
+      function mensagensDoStatus(p) {
+        const msgs = [{ acao: "status", id: p.id, status: p.status }];
+        if (p.status === "pronto") {
+          msgs.push({
+            acao: "notificacao",
+            id: p.id,
+            status: "pronto",
+            titulo: "Seu pedido está pronto!",
+            mensagem: `${p.nome}, seu pedido #${String(p.id).slice(-4).toUpperCase()} está pronto.`,
+          });
+        }
+        return msgs;
+      }
+
       function notificarStatus(p) {
-        try { canalStatus?.postMessage({ acao: "status", id: p.id, status: p.status }); } catch {}
-        for (const conn of acompanhantes.get(p.id) ?? []) {
-          try { if (conn.open) conn.send({ acao: "status", id: p.id, status: p.status }); } catch {}
+        const msgs = mensagensDoStatus(p);
+        for (const m of msgs) {
+          try { canalStatus?.postMessage(m); } catch {}
+          for (const conn of acompanhantes.get(p.id) ?? []) {
+            try { if (conn.open) conn.send(m); } catch {}
+          }
         }
       }
 
@@ -1194,6 +1281,10 @@
                 const p = pedidos.find((x) => x.id === id);
                 if (p) {
                   try { conn.send({ acao: "status", id, status: p.status }); } catch {}
+                  // cliente que conectou depois que o pedido já ficou pronto também é avisado
+                  if (p.status === "pronto") {
+                    try { conn.send(mensagensDoStatus(p)[1]); } catch {}
+                  }
                 }
               }
               return;

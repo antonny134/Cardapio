@@ -148,6 +148,25 @@
       .stat:nth-child(2) { --cor: var(--mostarda); }
       .stat:nth-child(3) { --cor: var(--ketchup); }
       .stat:nth-child(4) { --cor: var(--verde); }
+      .stat.clicavel {
+        font: inherit;
+        text-align: left;
+        width: 100%;
+        color: inherit;
+        cursor: pointer;
+      }
+      .stat.clicavel:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--tinta); }
+      .stat .dica {
+        display: block;
+        margin-top: 8px;
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.65;
+      }
+      .stat.clicavel:hover .dica { opacity: 1; color: var(--ketchup); }
 
       /* ---------- abas ---------- */
       .abas { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -392,6 +411,101 @@
       .erro-form { color: var(--ketchup); font-weight: 800; font-size: 0.85rem; }
       .modal-botoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
+      /* ---------- faturamento detalhado ---------- */
+      dialog.grande {
+        width: min(96vw, 1040px);
+        max-height: 92vh;
+        overflow-y: auto;
+        padding: 24px 24px 22px;
+      }
+      .fat-topo {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .fat-topo h2 { margin-bottom: 0; }
+      .fat-topo p { font-family: var(--mono); font-size: 0.75rem; margin-top: 4px; text-transform: capitalize; }
+      .fat-ctrl { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .seg { display: flex; border: 3px solid var(--tinta); background: var(--papel); }
+      .seg button {
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: transparent;
+        border: none;
+        border-right: 2px solid var(--tinta);
+        padding: 7px 14px;
+        cursor: pointer;
+      }
+      .seg button:last-child { border-right: none; }
+      .seg button.ativo { background: var(--tinta); color: var(--mostarda); }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .kpi {
+        border: 3px solid var(--tinta);
+        background: var(--papel);
+        padding: 11px 13px;
+        display: grid;
+        gap: 4px;
+        align-content: start;
+      }
+      .kpi.destaque { background: var(--mostarda); }
+      .kpi small {
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .kpi strong { font-family: var(--display); font-weight: 400; font-size: 1.75rem; line-height: 1.1; }
+      .kpi .sub { font-family: var(--mono); font-size: 0.68rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+      .delta {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        border: 2px solid var(--tinta);
+        padding: 1px 6px;
+        background: var(--papel-claro);
+        white-space: nowrap;
+      }
+      .delta.up { background: var(--verde); color: #fff; }
+      .delta.down { background: var(--ketchup); color: #fff; }
+      .graficos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+      .grafico { border: 3px solid var(--tinta); background: #fffdf5; padding: 14px 16px 16px; min-width: 0; }
+      .grafico.largo { grid-column: 1 / -1; }
+      .grafico h4 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      .grafico .leg { font-family: var(--mono); font-size: 0.68rem; opacity: 0.7; margin-bottom: 12px; }
+      .donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+      .donut-wrap svg { width: 150px; height: 150px; flex: none; }
+      .legenda { display: grid; gap: 7px; flex: 1; min-width: 150px; font-family: var(--mono); font-size: 0.75rem; }
+      .legenda div { display: flex; align-items: center; gap: 8px; }
+      .legenda i { width: 12px; height: 12px; border: 2px solid var(--tinta); flex: none; }
+      .legenda span { flex: 1; overflow-wrap: anywhere; }
+      .legenda b { white-space: nowrap; }
+      .hb { display: grid; gap: 11px; }
+      .hb-lin { display: grid; gap: 4px; font-family: var(--mono); font-size: 0.75rem; }
+      .hb-top { display: flex; justify-content: space-between; gap: 10px; }
+      .hb-top span:first-child { overflow-wrap: anywhere; font-weight: 700; }
+      .hb-top span:last-child { white-space: nowrap; }
+      .hb-trilho { height: 14px; border: 2px solid var(--tinta); background: var(--papel); }
+      .hb-fill { height: 100%; background: var(--cor, var(--laranja)); }
+      .sem-dados { font-family: var(--mono); font-size: 0.78rem; text-align: center; padding: 26px 8px; opacity: 0.7; }
+
       /* ---------- aviso ---------- */
       .aviso {
         position: fixed;
@@ -434,6 +548,8 @@
         header { padding: 14px 16px; }
         header h3 { font-size: 1.5rem; }
         main { padding: 22px 14px 50px; }
+        dialog.grande { padding: 18px 14px; }
+        .grafico { padding: 12px; }
       }
     </style>
   </head>
@@ -452,7 +568,10 @@
     <main>
       <div class="stats">
         <div class="stat"><small>Pedidos hoje</small><strong id="sPedidos">0</strong></div>
-        <div class="stat"><small>Faturamento hoje</small><strong id="sFat">R$ 0</strong></div>
+        <button type="button" class="stat clicavel" id="cardFat" title="Ver detalhes do faturamento">
+          <small>Faturamento hoje</small><strong id="sFat">R$ 0</strong>
+          <span class="dica">Ver detalhes →</span>
+        </button>
         <div class="stat"><small>Em aberto</small><strong id="sAberto">0</strong></div>
         <div class="stat"><small>Produtos no cardápio</small><strong id="sProd">0</strong></div>
       </div>
@@ -516,6 +635,14 @@
       </form>
     </dialog>
 
+    <dialog id="modalFat" class="grande" aria-labelledby="fatTitulo">
+      <div id="fatCorpo"></div>
+      <div class="modal-botoes">
+        <button type="button" class="btn claro" id="fatCsv">Exportar CSV</button>
+        <button type="button" class="btn" id="fatFechar">Fechar</button>
+      </div>
+    </dialog>
+
     <div id="recibo" aria-hidden="true"></div>
     <div class="aviso" id="aviso" role="alert" hidden></div>
 
@@ -549,6 +676,8 @@
         "estou-no-local": "Está no local",
         "irei-pegar": "Vai retirar no estabelecimento",
       };
+
+      const modalFat = $("modalFat");
 
       /* ---------- aviso ---------- */
       let tAviso;
@@ -585,6 +714,7 @@
         $("sAberto").textContent = abertos;
         $("nAberto").textContent = abertos;
         $("sProd").textContent = produtos.length;
+        if (modalFat.open) renderFat();
       }
 
       /* ---------- pedidos ---------- */
@@ -720,6 +850,261 @@
         salvarPedidos();
         renderPedidos();
         renderStats();
+      });
+
+      /* ---------- faturamento detalhado ---------- */
+      const DIA = 864e5;
+      const CORES = ["#ff6a13", "#ffc233", "#d62828", "#2f9e44", "#1b1410", "#8a5a2b"];
+      const ROTULO_PERIODO = { hoje: "Hoje", 7: "7 dias", 30: "30 dias" };
+      let periodoFat = "hoje";
+
+      const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+      const fmtNum = (v, max = 1) => Number(v).toLocaleString("pt-BR", { maximumFractionDigits: max });
+      const fmtData = (t) => new Date(t).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+      function janelaFat() {
+        const n = periodoFat === "hoje" ? 1 : Number(periodoFat);
+        const ini = inicioDia(Date.now()) - (n - 1) * DIA;
+        return { n, ini, fim: ini + n * DIA, iniAnt: ini - n * DIA };
+      }
+
+      function bonito(max) {
+        const p = Math.pow(10, Math.floor(Math.log10(max)));
+        const f = max / p;
+        return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+      }
+
+      function compacto(v) {
+        return v >= 1000 ? `R$ ${fmtNum(v / 1000)} mil` : `R$ ${fmtNum(v, 2)}`;
+      }
+
+      function delta(atual, anterior) {
+        if (!anterior) return `<span class="delta">${atual ? "novo" : "—"}</span>`;
+        const v = ((atual - anterior) / anterior) * 100;
+        const cls = v > 0.05 ? "up" : v < -0.05 ? "down" : "";
+        const seta = v > 0.05 ? "▲" : v < -0.05 ? "▼" : "■";
+        return `<span class="delta ${cls}">${seta} ${fmtNum(Math.abs(v))}%</span>`;
+      }
+
+      function graficoBarras(labels, vals, qts, unidade) {
+        const W = 640, H = 250, m = { t: 14, r: 12, b: 30, l: 62 };
+        const iw = W - m.l - m.r, ih = H - m.t - m.b;
+        const maximo = Math.max(...vals, 0);
+        const topo = bonito(Math.max(maximo, 1));
+        const pico = maximo > 0 ? vals.indexOf(maximo) : -1;
+        const bw = iw / vals.length;
+        const larg = Math.max(3, bw * 0.7);
+        const passo = Math.ceil(vals.length / 12);
+        let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Faturamento por ${unidade}" style="width:100%;height:auto;display:block">`;
+        for (let k = 0; k <= 4; k++) {
+          const y = m.t + ih - (ih * k) / 4;
+          s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="#1b1410" stroke-opacity="${k ? 0.18 : 1}" stroke-width="${k ? 1 : 2}" ${k ? 'stroke-dasharray="4 4"' : ""}/>`;
+          s += `<text x="${m.l - 8}" y="${y + 4}" text-anchor="end" font-family="Space Mono, monospace" font-size="10" fill="#1b1410">${compacto((topo * k) / 4)}</text>`;
+        }
+        vals.forEach((v, i) => {
+          const cx = m.l + i * bw + bw / 2;
+          if (v > 0) {
+            const h = Math.max(2, (v / topo) * ih);
+            s += `<rect x="${cx - larg / 2}" y="${m.t + ih - h}" width="${larg}" height="${h}" fill="${i === pico ? "#d62828" : "#ff6a13"}" stroke="#1b1410" stroke-width="2"><title>${esc(labels[i])}: ${brl(v)} · ${qts[i]} pedido(s)</title></rect>`;
+          }
+          if (i % passo === 0) {
+            s += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-family="Space Mono, monospace" font-size="10" fill="#1b1410">${esc(labels[i])}</text>`;
+          }
+        });
+        return s + "</svg>";
+      }
+
+      function graficoRosca(itens, total) {
+        const r = 54, c = 2 * Math.PI * r;
+        let acc = 0;
+        let arcos = "";
+        itens.forEach((it, i) => {
+          const len = (it.valor / total) * c;
+          arcos += `<circle cx="80" cy="80" r="${r}" fill="none" stroke="${CORES[i % CORES.length]}" stroke-width="28" stroke-dasharray="${len} ${c - len}" stroke-dashoffset="${-acc}" transform="rotate(-90 80 80)"><title>${esc(it.nome)}: ${brl(it.valor)}</title></circle>`;
+          acc += len;
+        });
+        const svg = `<svg viewBox="0 0 160 160" role="img" aria-label="Faturamento por forma de pagamento">
+          <circle cx="80" cy="80" r="68" fill="none" stroke="#1b1410" stroke-width="2"/>
+          <circle cx="80" cy="80" r="40" fill="none" stroke="#1b1410" stroke-width="2"/>
+          ${arcos}
+          <text x="80" y="76" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="#1b1410">TOTAL</text>
+          <text x="80" y="92" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="14" fill="#1b1410">${esc(compacto(total))}</text>
+        </svg>`;
+        const legenda = itens
+          .map(
+            (it, i) =>
+              `<div><i style="background:${CORES[i % CORES.length]}"></i><span>${esc(it.nome)}</span><b>${fmtNum((it.valor / total) * 100)}%</b></div>`,
+          )
+          .join("");
+        return `<div class="donut-wrap">${svg}<div class="legenda">${legenda}</div></div>`;
+      }
+
+      function barrasH(itens, cor) {
+        const max = Math.max(...itens.map((i) => i.valor), 1);
+        return `<div class="hb">${itens
+          .map(
+            (it) => `<div class="hb-lin">
+              <div class="hb-top"><span>${esc(it.nome)}</span><span>${esc(it.texto)}</span></div>
+              <div class="hb-trilho"><div class="hb-fill" style="width:${Math.max(3, (it.valor / max) * 100)}%;${cor ? `--cor:${cor}` : ""}"></div></div>
+            </div>`,
+          )
+          .join("")}</div>`;
+      }
+
+      function somarPor(lista, chave) {
+        const m = new Map();
+        lista.forEach((p) => m.set(chave(p), (m.get(chave(p)) || 0) + p.total));
+        return [...m].map(([nome, valor]) => ({ nome, valor })).sort((a, b) => b.valor - a.valor);
+      }
+
+      function renderFat() {
+        const { n, ini, fim, iniAnt } = janelaFat();
+        const atual = pedidos.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim);
+        const ant = pedidos.filter((p) => p.recebidoEm >= iniAnt && p.recebidoEm < ini);
+        const soma = (l) => l.reduce((s, p) => s + p.total, 0);
+        const fat = soma(atual), fatAnt = soma(ant);
+        const ticket = atual.length ? fat / atual.length : 0;
+        const ticketAnt = ant.length ? fatAnt / ant.length : 0;
+        const maior = atual.reduce((m, p) => Math.max(m, p.total), 0);
+        const qtdItens = atual.reduce((s, p) => s + p.itens.reduce((a, i) => a + i.quantidade, 0), 0);
+        const vsTxt = n === 1 ? "vs ontem" : `vs ${n} dias antes`;
+
+        // série temporal
+        const nb = n === 1 ? 24 : n;
+        const vals = new Array(nb).fill(0), qts = new Array(nb).fill(0);
+        atual.forEach((p) => {
+          const i = n === 1 ? new Date(p.recebidoEm).getHours() : Math.min(nb - 1, Math.floor((p.recebidoEm - ini) / DIA));
+          vals[i] += p.total;
+          qts[i]++;
+        });
+        const labels = vals.map((_, i) => (n === 1 ? `${String(i).padStart(2, "0")}h` : fmtData(ini + i * DIA)));
+        const maxVal = Math.max(...vals);
+        const iPico = maxVal > 0 ? vals.indexOf(maxVal) : -1;
+
+        // quebras
+        const pagamentos = somarPor(atual, (p) => p.pagamento || "Não informado");
+        const tipos = somarPor(atual, (p) => rotuloTipo[p.tipo] || p.tipo || "Não informado").map((t) => ({
+          ...t,
+          texto: `${brl(t.valor)} · ${fmtNum((t.valor / fat) * 100)}%`,
+        }));
+        const porProduto = new Map();
+        atual.forEach((p) =>
+          p.itens.forEach((i) => {
+            const o = porProduto.get(i.nome) || { valor: 0, qtd: 0 };
+            o.valor += (i.valor ?? 0) * i.quantidade;
+            o.qtd += i.quantidade;
+            porProduto.set(i.nome, o);
+          }),
+        );
+        const top = [...porProduto]
+          .map(([nome, o]) => ({ nome, valor: o.valor, texto: `${o.qtd}x · ${brl(o.valor)}` }))
+          .sort((a, b) => b.valor - a.valor)
+          .slice(0, 6);
+        const status = fluxo
+          .map((s) => ({ nome: rotulo[s], valor: atual.filter((p) => p.status === s).length }))
+          .map((s) => ({ ...s, texto: `${s.valor} pedido(s)` }));
+
+        const periodoTxt =
+          n === 1
+            ? new Date(ini).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+            : `${fmtData(ini)} a ${fmtData(fim - 1)}`;
+
+        const vazio = '<p class="sem-dados">Sem pedidos neste período.</p>';
+
+        $("fatCorpo").innerHTML = `
+          <div class="fat-topo">
+            <div>
+              <h2 id="fatTitulo">Faturamento</h2>
+              <p>${esc(periodoTxt)}</p>
+            </div>
+            <div class="fat-ctrl">
+              <div class="seg" role="group" aria-label="Período">
+                ${Object.keys(ROTULO_PERIODO)
+                  .map((k) => `<button type="button" data-p="${k}" class="${String(periodoFat) === k ? "ativo" : ""}">${ROTULO_PERIODO[k]}</button>`)
+                  .join("")}
+              </div>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi destaque"><small>Faturamento</small><strong>${brl(fat)}</strong><div class="sub">${delta(fat, fatAnt)} ${vsTxt}</div></div>
+            <div class="kpi"><small>Pedidos</small><strong>${atual.length}</strong><div class="sub">${delta(atual.length, ant.length)} ${vsTxt}</div></div>
+            <div class="kpi"><small>Ticket médio</small><strong>${brl(ticket)}</strong><div class="sub">${delta(ticket, ticketAnt)} ${vsTxt}</div></div>
+            <div class="kpi"><small>Maior pedido</small><strong>${brl(maior)}</strong><div class="sub">${qtdItens} item(ns) vendidos</div></div>
+            <div class="kpi"><small>${n === 1 ? "Horário de pico" : "Melhor dia"}</small><strong>${iPico >= 0 ? esc(labels[iPico]) : "—"}</strong><div class="sub">${iPico >= 0 ? `${brl(maxVal)} · ${qts[iPico]} pedido(s)` : "sem vendas"}</div></div>
+          </div>
+
+          <div class="graficos">
+            <div class="grafico largo">
+              <h4>Faturamento por ${n === 1 ? "hora" : "dia"}</h4>
+              <p class="leg">Barra vermelha = ${n === 1 ? "hora" : "dia"} de maior faturamento. Passe o mouse para ver detalhes.</p>
+              ${graficoBarras(labels, vals, qts, n === 1 ? "hora" : "dia")}
+            </div>
+            <div class="grafico">
+              <h4>Formas de pagamento</h4>
+              <p class="leg">Participação no faturamento</p>
+              ${atual.length && fat > 0 ? graficoRosca(pagamentos, fat) : vazio}
+            </div>
+            <div class="grafico">
+              <h4>Tipo de pedido</h4>
+              <p class="leg">Entrega, retirada e consumo no local</p>
+              ${atual.length && fat > 0 ? barrasH(tipos, "#ffc233") : vazio}
+            </div>
+            <div class="grafico">
+              <h4>Produtos que mais faturam</h4>
+              <p class="leg">Top 6 por valor vendido</p>
+              ${top.length ? barrasH(top, "#ff6a13") : vazio}
+            </div>
+            <div class="grafico">
+              <h4>Pedidos por status</h4>
+              <p class="leg">Situação atual dos pedidos do período</p>
+              ${atual.length ? barrasH(status, "#2f9e44") : vazio}
+            </div>
+          </div>`;
+      }
+
+      function exportarCsv() {
+        const { ini, fim } = janelaFat();
+        const lista = pedidos.filter((p) => p.recebidoEm >= ini && p.recebidoEm < fim).sort((a, b) => a.recebidoEm - b.recebidoEm);
+        if (!lista.length) return aviso("Sem pedidos no período para exportar.");
+        const cel = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+        const linhas = [["Pedido", "Data", "Cliente", "Tipo", "Pagamento", "Status", "Itens", "Total"].map(cel).join(";")];
+        lista.forEach((p) =>
+          linhas.push(
+            [
+              String(p.id).slice(-4).toUpperCase(),
+              new Date(p.recebidoEm).toLocaleString("pt-BR"),
+              p.nome,
+              rotuloTipo[p.tipo] || p.tipo,
+              p.pagamento,
+              rotulo[p.status],
+              p.itens.map((i) => `${i.quantidade}x ${i.nome}`).join(" + "),
+              p.total.toFixed(2).replace(".", ","),
+            ]
+              .map(cel)
+              .join(";"),
+          ),
+        );
+        const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `faturamento-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      }
+
+      $("cardFat").addEventListener("click", () => {
+        periodoFat = "hoje";
+        renderFat();
+        modalFat.showModal();
+      });
+      $("fatFechar").addEventListener("click", () => modalFat.close());
+      $("fatCsv").addEventListener("click", exportarCsv);
+      $("fatCorpo").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-p]");
+        if (!b) return;
+        periodoFat = b.dataset.p;
+        renderFat();
       });
 
       /* ---------- recebimento de pedidos (cardápio -> gestão) ---------- */
